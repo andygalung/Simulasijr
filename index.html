@@ -25,15 +25,15 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            padding: 8px;
-            gap: 8px;
+            padding: 6px;
+            gap: 6px;
         }
 
         .header {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(20px);
-            border-radius: 12px;
-            padding: 10px 12px;
+            border-radius: 10px;
+            padding: 8px 12px;
             border: 1px solid rgba(147, 51, 234, 0.3);
             display: flex;
             justify-content: space-between;
@@ -42,7 +42,7 @@
         }
 
         .header-left h1 {
-            font-size: 1.1rem;
+            font-size: 1rem;
             background: linear-gradient(to right, #60a5fa, #a78bfa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -52,7 +52,7 @@
         .header-left p {
             color: #9ca3af;
             font-size: 0.65rem;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .header-right {
@@ -83,10 +83,14 @@
             font-size: 0.75rem;
         }
 
+        .btn-reset:active {
+            background: #dc2626;
+            transform: scale(0.95);
+        }
+
         .main-content {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             flex: 1;
             overflow: hidden;
             min-height: 0;
@@ -95,47 +99,89 @@
         .sidebar {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(20px);
-            border-radius: 12px;
-            padding: 10px;
+            border-radius: 10px;
             border: 1px solid rgba(147, 51, 234, 0.3);
             flex-shrink: 0;
-            max-height: 35vh;
-            overflow-y: auto;
-        }
-
-        .sidebar-header {
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
+            flex-direction: column;
         }
 
-        .sidebar h2 {
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin: 0;
+        .sidebar.open {
+            width: 200px;
         }
 
-        .toggle-btn {
-            background: rgba(147, 51, 234, 0.3);
-            border: 1px solid rgba(147, 51, 234, 0.5);
+        .sidebar.closed {
+            width: 45px;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: 6px;
+            top: 6px;
+            background: rgba(147, 51, 234, 0.4);
+            border: 1px solid rgba(147, 51, 234, 0.6);
             color: white;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.7rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            z-index: 10;
             transition: all 0.3s;
         }
 
-        .toggle-btn:active {
-            background: rgba(147, 51, 234, 0.5);
+        .sidebar-toggle:active {
+            background: rgba(147, 51, 234, 0.6);
+            transform: scale(0.95);
+        }
+
+        .sidebar-content {
+            padding: 10px;
+            overflow-y: auto;
+            flex: 1;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar.closed .sidebar-content {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-closed-icons {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 50px 8px 10px;
+        }
+
+        .sidebar.closed .sidebar-closed-icons {
+            display: flex;
+        }
+
+        .sidebar-icon {
+            font-size: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .sidebar h2 {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
         }
 
         .components-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 6px;
             margin-bottom: 10px;
         }
@@ -143,7 +189,7 @@
         .device-item {
             background: linear-gradient(to right, #374151, #1f2937);
             padding: 8px;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: move;
             transition: all 0.3s;
             border: 2px solid transparent;
@@ -166,35 +212,34 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 10px;
+            border-radius: 8px;
         }
 
         .device-name {
             font-weight: bold;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-align: center;
         }
 
         .cables-container {
             display: flex;
+            flex-direction: column;
             gap: 6px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
         .cable-item {
-            flex: 1;
-            padding: 8px;
-            border-radius: 10px;
+            padding: 6px 8px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
             background: #1f2937;
             touch-action: none;
-            text-align: center;
         }
 
         .cable-item.active {
             background: linear-gradient(to right, #7c3aed, #2563eb);
-            transform: scale(1.05);
+            transform: scale(1.02);
             box-shadow: 0 5px 15px rgba(124, 58, 237, 0.4);
         }
 
@@ -205,15 +250,15 @@
         .cable-header {
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 6px;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         .cable-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
+            flex-shrink: 0;
         }
 
         .cable-name {
@@ -224,6 +269,7 @@
         .cable-desc {
             font-size: 0.6rem;
             color: #9ca3af;
+            margin-left: 16px;
         }
 
         .help-toggle {
@@ -232,9 +278,13 @@
             padding: 6px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             text-align: center;
             margin-top: 6px;
+        }
+
+        .help-toggle:active {
+            background: rgba(59, 130, 246, 0.3);
         }
 
         .help-content {
@@ -251,13 +301,13 @@
         }
 
         .help-content h3 {
-            margin-bottom: 6px;
-            font-size: 0.75rem;
+            margin-bottom: 5px;
+            font-size: 0.7rem;
         }
 
         .help-content ol {
             padding-left: 14px;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: #d1d5db;
         }
 
@@ -276,7 +326,7 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
-            border-radius: 12px;
+            border-radius: 10px;
             border: 2px dashed rgba(147, 51, 234, 0.5);
             position: relative;
             overflow: hidden;
@@ -377,7 +427,7 @@
             padding: 8px;
             border-radius: 10px;
             border: 1px solid rgba(147, 51, 234, 0.3);
-            max-height: 60vh;
+            max-height: 85vh;
             overflow-y: auto;
             min-width: 140px;
             max-width: 200px;
@@ -386,7 +436,7 @@
         }
 
         .info-panel.minimized {
-            transform: translateX(calc(100% - 40px));
+            transform: translateX(calc(100% - 38px));
         }
 
         .info-toggle-btn {
@@ -451,6 +501,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
         }
 
         .clear-all-cables {
@@ -531,26 +583,26 @@
 
         .notification {
             position: fixed;
-            top: 70px;
+            top: 60px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
             border: 2px solid;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 10px;
             font-weight: bold;
             z-index: 2000;
             animation: slideDown 0.3s ease-out;
             display: none;
-            font-size: 0.8rem;
-            max-width: 90%;
+            font-size: 0.75rem;
+            max-width: 80%;
             text-align: center;
         }
 
         @keyframes slideDown {
             from {
-                transform: translateX(-50%) translateY(-50px);
+                transform: translateX(-50%) translateY(-30px);
                 opacity: 0;
             }
             to {
@@ -574,10 +626,9 @@
             color: #3b82f6;
         }
 
-        /* Scrollbar styling */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
 
         ::-webkit-scrollbar-track {
@@ -599,37 +650,48 @@
     <div class="container">
         <div class="header">
             <div class="header-left">
-                <h1>🌐 Simulasi Jaringan</h1>
-                <p>SMK - Media Pembelajaran</p>
+                <h1>🌐 Simulasi Jaringan Komputer</h1>
+                <p>SMK - Media Pembelajaran Interaktif</p>
             </div>
             <div class="header-right">
                 <div class="score">🏆 <span id="scoreValue">0</span></div>
-                <button class="btn-reset" onclick="resetAll()">🗑️</button>
+                <button class="btn-reset" onclick="resetAll()">🗑️ Reset</button>
             </div>
         </div>
 
         <div class="main-content">
-            <div class="sidebar">
-                <div class="sidebar-header">
+            <div class="sidebar open" id="sidebar">
+                <div class="sidebar-toggle" onclick="toggleSidebar()">
+                    <span id="sidebarIcon">◀</span>
+                </div>
+                
+                <div class="sidebar-content">
                     <h2>🔧 Komponen</h2>
-                </div>
-                <div class="components-grid" id="deviceList"></div>
+                    <div class="components-grid" id="deviceList"></div>
 
-                <h2 style="margin-top: 8px; margin-bottom: 8px;">🔌 Kabel</h2>
-                <div class="cables-container" id="cableList"></div>
+                    <h2 style="margin-top: 8px;">🔌 Kabel</h2>
+                    <div class="cables-container" id="cableList"></div>
 
-                <div class="help-toggle" onclick="toggleHelp()">
-                    💡 <span id="helpToggleText">Tampilkan Bantuan</span>
+                    <div class="help-toggle" onclick="toggleHelp()">
+                        💡 <span id="helpToggleText">Bantuan</span>
+                    </div>
+                    <div class="help-content" id="helpContent">
+                        <h3>Cara Bermain:</h3>
+                        <ol>
+                            <li>Tap & drag komponen ke canvas</li>
+                            <li>Geser komponen di canvas</li>
+                            <li>Tap ❌ untuk hapus device</li>
+                            <li>Pilih kabel, tap 2 device untuk koneksi</li>
+                            <li>Hapus kabel di panel kanan atas</li>
+                        </ol>
+                    </div>
                 </div>
-                <div class="help-content" id="helpContent">
-                    <h3>Cara Bermain:</h3>
-                    <ol>
-                        <li>Tap & drag komponen ke canvas</li>
-                        <li>Geser komponen di canvas</li>
-                        <li>Tap ❌ untuk hapus</li>
-                        <li>Pilih kabel, tap 2 device</li>
-                        <li>Hapus kabel di panel kanan bawah</li>
-                    </ol>
+
+                <div class="sidebar-closed-icons">
+                    <div class="sidebar-icon">🔧</div>
+                    <div class="sidebar-icon">💻</div>
+                    <div class="sidebar-icon">🔌</div>
+                    <div class="sidebar-icon">📶</div>
                 </div>
             </div>
 
@@ -639,8 +701,8 @@
                     <div class="devices-layer" id="devicesLayer"></div>
                     <div class="empty-state" id="emptyState">
                         <div class="empty-state-icon">💻</div>
-                        <p style="font-size: 1rem; font-weight: bold;">Tap komponen lalu<br>drag ke sini!</p>
-                        <p style="font-size: 0.75rem; margin-top: 8px;">Buat topologi jaringan</p>
+                        <p style="font-size: 1rem; font-weight: bold;">Buka panel & drag komponen ke sini!</p>
+                        <p style="font-size: 0.75rem; margin-top: 8px;">Buat topologi jaringan kamu</p>
                     </div>
                 </div>
 
@@ -662,7 +724,10 @@
                     </div>
 
                     <div class="cable-list" id="cableListPanel">
-                        <div class="cable-list-title">📋 Kabel Terpasang:</div>
+                        <div class="cable-list-title">
+                            <span>📋 Kabel (<span id="cableCount">0</span>):</span>
+                            <button class="clear-all-cables" onclick="clearAllCables()">Hapus Semua</button>
+                        </div>
                         <div id="cableListContent"></div>
                     </div>
                 </div>
@@ -683,8 +748,8 @@
         ];
 
         const cableTypes = [
-            { id: 'straight', name: 'Straight', color: '#3b82f6', desc: 'PC-Switch' },
-            { id: 'crossover', name: 'Cross', color: '#ef4444', desc: 'PC-PC' },
+            { id: 'straight', name: 'Straight', color: '#3b82f6', desc: 'PC-Switch/Router' },
+            { id: 'crossover', name: 'Crossover', color: '#ef4444', desc: 'PC-PC, Router-Router' },
             { id: 'fiber', name: 'Fiber', color: '#f59e0b', desc: 'Jarak jauh' }
         ];
 
@@ -698,6 +763,23 @@
         let touchMoved = false;
         let animationFrameId = null;
         let infoPanelMinimized = false;
+        let sidebarOpen = true;
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('sidebarIcon');
+            sidebarOpen = !sidebarOpen;
+            
+            if (sidebarOpen) {
+                sidebar.classList.remove('closed');
+                sidebar.classList.add('open');
+                icon.textContent = '◀';
+            } else {
+                sidebar.classList.remove('open');
+                sidebar.classList.add('closed');
+                icon.textContent = '▶';
+            }
+        }
 
         function toggleInfoPanel() {
             const panel = document.getElementById('infoPanel');
@@ -718,7 +800,7 @@
             const helpToggleText = document.getElementById('helpToggleText');
             helpContent.classList.toggle('show');
             helpToggleText.textContent = helpContent.classList.contains('show') ? 
-                'Sembunyikan Bantuan' : 'Tampilkan Bantuan';
+                'Tutup' : 'Bantuan';
         }
 
         function showNotification(message, type = 'info') {
@@ -1136,6 +1218,9 @@
                 }
             });
 
+            // Update cable count
+            document.getElementById('cableCount').textContent = connections.length;
+
             if (connections.length === 0) {
                 cableListPanel.style.display = 'none';
             } else {
@@ -1154,15 +1239,6 @@
                         </div>
                     `;
                 }).join('');
-
-                // Update title dengan tombol hapus semua
-                const titleElement = document.querySelector('.cable-list-title');
-                if (titleElement && connections.length > 0) {
-                    titleElement.innerHTML = `
-                        <span>📋 Kabel (${connections.length}):</span>
-                        <button class="clear-all-cables" onclick="clearAllCables()">Hapus Semua</button>
-                    `;
-                }
 
                 setTimeout(() => {
                     document.querySelectorAll('.cable-delete-btn').forEach(btn => {
