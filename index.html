@@ -370,17 +370,47 @@
 
         .info-panel {
             position: absolute;
-            bottom: 8px;
+            top: 8px;
             right: 8px;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.90);
             backdrop-filter: blur(20px);
             padding: 8px;
             border-radius: 10px;
             border: 1px solid rgba(147, 51, 234, 0.3);
-            max-height: 40vh;
+            max-height: 60vh;
             overflow-y: auto;
             min-width: 140px;
             max-width: 200px;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .info-panel.minimized {
+            transform: translateX(calc(100% - 40px));
+        }
+
+        .info-toggle-btn {
+            position: absolute;
+            left: -30px;
+            top: 8px;
+            width: 30px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.90);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .info-toggle-btn:active {
+            background: rgba(147, 51, 234, 0.5);
         }
 
         .info-item {
@@ -418,6 +448,24 @@
             margin-bottom: 6px;
             font-size: 0.7rem;
             color: #a78bfa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-all-cables {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .clear-all-cables:active {
+            background: #dc2626;
         }
 
         .cable-list-item {
@@ -596,7 +644,10 @@
                     </div>
                 </div>
 
-                <div class="info-panel">
+                <div class="info-panel" id="infoPanel">
+                    <div class="info-toggle-btn" onclick="toggleInfoPanel()">
+                        <span id="infoPanelIcon">◀</span>
+                    </div>
                     <div class="info-item">
                         <div class="info-dot green"></div>
                         <span>Benar: <strong id="correctCount">0</strong></span>
@@ -611,7 +662,7 @@
                     </div>
 
                     <div class="cable-list" id="cableListPanel">
-                        <div class="cable-list-title">📋 Kabel:</div>
+                        <div class="cable-list-title">📋 Kabel Terpasang:</div>
                         <div id="cableListContent"></div>
                     </div>
                 </div>
@@ -646,6 +697,21 @@
         let draggingDevice = null;
         let touchMoved = false;
         let animationFrameId = null;
+        let infoPanelMinimized = false;
+
+        function toggleInfoPanel() {
+            const panel = document.getElementById('infoPanel');
+            const icon = document.getElementById('infoPanelIcon');
+            infoPanelMinimized = !infoPanelMinimized;
+            
+            if (infoPanelMinimized) {
+                panel.classList.add('minimized');
+                icon.textContent = '▶';
+            } else {
+                panel.classList.remove('minimized');
+                icon.textContent = '◀';
+            }
+        }
 
         function toggleHelp() {
             const helpContent = document.getElementById('helpContent');
@@ -1089,6 +1155,15 @@
                     `;
                 }).join('');
 
+                // Update title dengan tombol hapus semua
+                const titleElement = document.querySelector('.cable-list-title');
+                if (titleElement && connections.length > 0) {
+                    titleElement.innerHTML = `
+                        <span>📋 Kabel (${connections.length}):</span>
+                        <button class="clear-all-cables" onclick="clearAllCables()">Hapus Semua</button>
+                    `;
+                }
+
                 setTimeout(() => {
                     document.querySelectorAll('.cable-delete-btn').forEach(btn => {
                         const deleteFunc = (e) => {
@@ -1152,6 +1227,15 @@
             document.getElementById('scoreValue').textContent = '0';
             render();
             showNotification('🗑️ Semua dihapus!', 'success');
+        }
+
+        function clearAllCables() {
+            if (connections.length === 0) return;
+            
+            connections = [];
+            connectingFrom = null;
+            render();
+            showNotification('🗑️ Semua kabel dihapus!', 'success');
         }
 
         init();
