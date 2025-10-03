@@ -400,6 +400,16 @@
             background: rgba(0, 0, 0, 0.6);
             padding: 2px 5px;
             border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .device-label:hover {
+            background: rgba(147, 51, 234, 0.6);
+        }
+
+        .device-label:active {
+            background: rgba(147, 51, 234, 0.8);
         }
 
         .empty-state {
@@ -626,6 +636,123 @@
             color: #3b82f6;
         }
 
+        /* Rename Modal */
+        .rename-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .rename-modal.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .rename-content {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 2px solid rgba(147, 51, 234, 0.5);
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            max-width: 350px;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .rename-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #a78bfa;
+        }
+
+        .rename-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(147, 51, 234, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .rename-input:focus {
+            border-color: rgba(147, 51, 234, 0.8);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .rename-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .rename-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .rename-btn-save {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+        }
+
+        .rename-btn-save:active {
+            transform: scale(0.95);
+            background: linear-gradient(to right, #059669, #047857);
+        }
+
+        .rename-btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .rename-btn-cancel:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .rename-hint {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            margin-top: 8px;
+            text-align: center;
+        }
+
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
@@ -737,6 +864,21 @@
 
     <div id="notification" class="notification"></div>
 
+    <!-- Rename Modal -->
+    <div id="renameModal" class="rename-modal">
+        <div class="rename-content">
+            <div class="rename-header">
+                ✏️ Ganti Nama Device
+            </div>
+            <input type="text" id="renameInput" class="rename-input" placeholder="Masukkan nama baru..." maxlength="20">
+            <div class="rename-hint">Tap label device untuk mengganti nama</div>
+            <div class="rename-buttons">
+                <button class="rename-btn rename-btn-cancel" onclick="closeRenameModal()">Batal</button>
+                <button class="rename-btn rename-btn-save" onclick="saveRename()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const deviceTypes = [
             { id: 'pc', name: 'PC', icon: '💻', color: '#60a5fa' },
@@ -764,6 +906,7 @@
         let animationFrameId = null;
         let infoPanelMinimized = false;
         let sidebarOpen = true;
+        let renamingDeviceId = null;
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
