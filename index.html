@@ -1,4 +1,283 @@
-<!DOCTYPE html>
+// Delete container
+                const deleteBtn = el.querySelector('.container-delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        deleteContainer(containerId);
+                    });
+                    deleteBtn.addEventListener('touchend', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        deleteContainer(containerId);
+                    });
+                }
+
+                // Resize handles
+                el.querySelectorAll('.resize-handle').forEach(handle => {
+                    const handleType = handle.dataset.handle;
+                    
+                    handle.addEventListener('mousedown', (e) => {
+                        e.stopPropagation();
+                        const container = containers.find(c => c.id === containerId);
+                        if (container) {
+                            resizingContainer = containerId;
+                            resizeHandle = handleType;
+                            resizeStartX = e.clientX;
+                            resizeStartY = e.clientY;
+                            resizeStartWidth = container.width;
+                            resizeStartHeight = container.height;
+                            resizeStartLeft = container.x;
+                            resizeStartTop = container.y;
+                        }
+                    });
+
+                    handle.addEventListener('touchstart', (e) => {
+                        e.stopPropagation();
+                        const touch = e.touches[0];
+                        const container = containers.find(c => c.id === containerId);
+                        if (container) {
+                            resizingContainer = containerId;
+                            resizeHandle = handleType;
+                            resizeStartX = touch.clientX;
+                            resizeStartY = touch.clientY;
+                            resizeStartWidth = container.width;
+                            resizeStartHeight = container.height;
+                            resizeStartLeft = container.x;
+                            resizeStartTop = container.y;
+                        }
+                    }, { passive: true });
+                });
+            });
+
+            // Re-add device event listeners
+            document.querySelectorAll('.device-on-canvas').forEach(el => {
+                const deviceId = parseInt(el.dataset.deviceId);
+                
+                el.addEventListener('click', (e) => handleDeviceClick(deviceId, e));
+                el.addEventListener('touchend', (e) => {
+                    if (!touchMoved) {
+                        handleDeviceClick(deviceId, e);
+                    }
+                });
+                
+                el.addEventListener('mousedown', (e) => {
+                    if (!e.target.closest('.delete-btn')) {
+                        startDragDevice(deviceId, e);
+                    }
+                });
+
+                el.addEventListener('touchstart', (e) => {
+                    if (!e.target.closest('.delete-btn')) {
+                        touchMoved = false;
+                        startDragDevice(deviceId, e);
+                    }
+                }, { passive: true });
+
+                el.addEventListener('touchmove', (e) => {
+                    if (draggingDevice === deviceId) {
+                        touchMoved = true;
+                    }
+                }, { passive: true });
+                
+                const deleteBtn = el.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        deleteDevice(deviceId, e);
+                    });
+                    deleteBtn.addEventListener('touchend', (e) => {
+                        deleteDevice(deviceId, e);
+                    });
+                }
+
+                // Rename label event - Triple tap/click
+                const label = el.querySelector('.device-label');
+                if (label) {
+                    const handleTripleClick = (e, deviceId) => {
+                        e.stopPropagation();
+                        
+                        tapCount++;
+                        
+                        if (tapCount === 1) {
+                            tapTimer = setTimeout(() => {
+                                tapCount = 0;
+                            }, 500);
+                        }
+                        
+                        if (tapCount === 3) {
+                            clearTimeout(tapTimer);
+                            tapCount = 0;
+                            e.preventDefault();
+                            startEditLabel(deviceId);
+                            showNotification('✏️ Mode Edit Nama', 'info');
+                        }
+                    };
+
+                    label.addEventListener('click', (e) => {
+                        handleTripleClick(e, deviceId);
+                    });
+
+                    label.addEventListener('touchend', (e) => {
+                        handleTripleClick(e, deviceId);
+                    });
+                }
+            });
+
+            updateStats();
+        }
+
+        function startEditContainerLabel(containerId) {
+            if (editingContainerId) return;
+            
+            editingContainerId = containerId;
+            const container = containers.find(c => c.id === containerId);
+            if (!container) return;
+
+            const labelEl = document.querySelector(`[data-container-id="${containerId}"] .container-label`);
+            if (!labelEl) return;
+
+            const currentName = container.customName || container.name;
+            
+            labelEl.classList.add('editing');
+            labelEl.innerHTML = `<input type="text" class="container-label-input" value="${currentName}" maxlength="30">`;
+            
+            const input = labelEl.querySelector('input');
+            input.focus();
+            input.select();
+
+            input.addEventListener('blur', () => finishEditContainerLabel(containerId));
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    finishEditContainerLabel(containerId);
+                } else if (e.key === 'Escape') {
+                    cancelEditContainerLabel(containerId);
+                }
+            });
+
+            input.addEventListener('click', (e) => e.stopPropagation());
+            input.addEventListener('touchstart', (e) => e.stopPropagation());
+        }
+
+        function finishEditContainerLabel(containerId) {
+            if (!editingContainerId) return;
+
+            const container = containers.find(c => c.id === containerId);
+            if (!container) return;
+
+            const labelEl = document.querySelector(`[data-container-id="${containerId}"] .container-label`);
+            if (!labelEl) return;
+
+            const input = labelEl.querySelector('input');
+            if (input) {
+                const newName = input.value.trim();
+                if (newName) {
+                    container.customName = newName;
+                    showNotification(`✅ Container: "${newName}"`, 'success');
+                }
+            }
+
+            editingContainerId = null;
+            renderContainers();
+        }
+
+        function cancelEditContainerLabel(containerId) {
+            editingContainerId = null;
+            renderContainers();
+        }
+
+        function deleteContainer(containerId) {
+            containers = containers.filter(c => c.id !== containerId);
+            devices = devices.filter(d => d.id !== containerId);
+            renderContainers();
+            render();
+            showNotification('🗑️ Container dihapus!', 'info');
+        }
+
+        function renderContainers() {
+            const devicesLayer = document.getElementById('devicesLayer');
+            
+            // Render containers first (as background)
+            const containersHTML = containers.map(container => `
+                <div class="container-box" 
+                     data-container-id="${container.id}"
+                     style="left: ${container.x}px; top: ${container.y}px; width: ${container.width}px; height: ${container.height}px; border-color: ${container.color};">
+                    <div class="container-label" data-container-id="${container.id}">
+                        ${container.customName || container.name}
+                    </div>
+                    <div class="container-delete-btn" data-container-id="${container.id}">✕</div>
+                    <div class="resize-handle top-left" data-container-id="${container.id}" data-handle="top-left"></div>
+                    <div class="resize-handle top-right" data-container-id="${container.id}" data-handle="top-right"></div>
+                    <div class="resize-handle bottom-left" data-container-id="${container.id}" data-handle="bottom-left"></div>
+                    <div class="resize-handle bottom-right" data-container-id="${container.id}" data-handle="bottom-right"></div>
+                </div>
+            `).join('');
+
+            // Get existing devices HTML
+            const devicesHTML = devices.filter(d => !d.isContainer).map(device => `
+                <div class="device-on-canvas ${connectingFrom === device.id ? 'connecting' : ''}" 
+                     style="left: ${device.x - 27.5}px; top: ${device.y - 27.5}px;"
+                     data-device-id="${device.id}">
+                    <div class="device-box" style="background: ${device.color}30; border-color: ${device.color}; box-shadow: ${connectingFrom === device.id ? `0 0 20px ${device.color}` : `0 5px 15px ${device.color}60`};">
+                        ${device.icon}
+                        <div class="delete-btn" data-device-id="${device.id}">✕</div>
+                    </div>
+                    <div class="device-label" data-device-id="${device.id}">${device.customName || device.name}</div>
+                </div>
+            `).join('');
+
+            devicesLayer.innerHTML = containersHTML + devicesHTML;
+
+            // Add container event listeners
+            document.querySelectorAll('.container-box').forEach(el => {
+                const containerId = parseInt(el.dataset.containerId);
+                
+                // Drag container
+                el.addEventListener('mousedown', (e) => {
+                    if (!e.target.closest('.resize-handle') && !e.target.closest('.container-delete-btn') && !e.target.closest('.container-label')) {
+                        touchMoved = false;
+                        draggingDevice = containerId;
+                        el.classList.add('dragging');
+                    }
+                });
+
+                el.addEventListener('touchstart', (e) => {
+                    if (!e.target.closest('.resize-handle') && !e.target.closest('.container-delete-btn') && !e.target.closest('.container-label')) {
+                        touchMoved = false;
+                        draggingDevice = containerId;
+                        el.classList.add('dragging');
+                    }
+                }, { passive: true });
+
+                // Edit label
+                const label = el.querySelector('.container-label');
+                if (label) {
+                    let containerTapCount = 0;
+                    let containerTapTimer = null;
+                    
+                    const handleTripleClick = (e) => {
+                        e.stopPropagation();
+                        
+                        containerTapCount++;
+                        
+                        if (containerTapCount === 1) {
+                            containerTapTimer = setTimeout(() => {
+                                containerTapCount = 0;
+                            }, 500);
+                        }
+                        
+                        if (containerTapCount === 3) {
+                            clearTimeout(containerTapTimer);
+                            containerTapCount = 0;
+                            e.preventDefault();
+                            startEditContainerLabel(containerId);
+                            showNotification('✏️ Edit Nama Container', 'info');
+                        }
+                    };
+
+                    label.addEventListener('click', handleTripleClick);
+                    label.addEventListener('touchend', handleTripleClick);
+                }
+
+                <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -428,6 +707,118 @@
             font-family: inherit;
         }
 
+        /* Container Styles */
+        .container-box {
+            position: absolute;
+            border: 3px dashed;
+            border-radius: 15px;
+            background: transparent;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+            min-width: 150px;
+            min-height: 100px;
+        }
+
+        .container-box.dragging {
+            opacity: 0.7;
+        }
+
+        .container-label {
+            position: absolute;
+            top: -25px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .container-label:hover {
+            background: rgba(147, 51, 234, 0.8);
+        }
+
+        .container-label.editing {
+            background: rgba(147, 51, 234, 0.9);
+            padding: 0;
+        }
+
+        .container-label-input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 4px 10px;
+            outline: none;
+            font-family: inherit;
+            min-width: 80px;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: rgba(147, 51, 234, 0.8);
+            border: 2px solid white;
+            border-radius: 50%;
+            z-index: 10;
+        }
+
+        .resize-handle:active {
+            background: rgba(147, 51, 234, 1);
+        }
+
+        .resize-handle.top-left {
+            top: -7px;
+            left: -7px;
+            cursor: nw-resize;
+        }
+
+        .resize-handle.top-right {
+            top: -7px;
+            right: -7px;
+            cursor: ne-resize;
+        }
+
+        .resize-handle.bottom-left {
+            bottom: -7px;
+            left: -7px;
+            cursor: sw-resize;
+        }
+
+        .resize-handle.bottom-right {
+            bottom: -7px;
+            right: -7px;
+            cursor: se-resize;
+        }
+
+        .container-delete-btn {
+            position: absolute;
+            top: -25px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 2px solid white;
+            z-index: 10;
+        }
+
+        .container-delete-btn:active {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
         .empty-state {
             position: absolute;
             top: 50%;
@@ -770,7 +1161,8 @@
             { id: 'router', name: 'Router', icon: '📡', color: '#f59e0b' },
             { id: 'switch', name: 'Switch', icon: '🔀', color: '#10b981' },
             { id: 'ap', name: 'AP', icon: '📶', color: '#ec4899' },
-            { id: 'printer', name: 'Printer', icon: '🖨️', color: '#6366f1' }
+            { id: 'printer', name: 'Printer', icon: '🖨️', color: '#6366f1' },
+            { id: 'container', name: 'Container', icon: '🏢', color: '#8b5cf6', isContainer: true }
         ];
 
         const cableTypes = [
@@ -793,6 +1185,16 @@
         let editingDeviceId = null;
         let tapCount = 0;
         let tapTimer = null;
+        let containers = [];
+        let resizingContainer = null;
+        let resizeHandle = null;
+        let resizeStartX = 0;
+        let resizeStartY = 0;
+        let resizeStartWidth = 0;
+        let resizeStartHeight = 0;
+        let resizeStartLeft = 0;
+        let resizeStartTop = 0;
+        let editingContainerId = null;
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -936,17 +1338,57 @@
             
             const device = devices.find(d => d.id === draggingDevice);
             if (device) {
-                device.x = x;
-                device.y = y;
-                
-                const deviceEl = document.querySelector(`[data-device-id="${draggingDevice}"]`);
-                if (deviceEl) {
-                    deviceEl.style.left = `${x - 27.5}px`;
-                    deviceEl.style.top = `${y - 27.5}px`;
+                // Check if it's a container
+                if (device.isContainer) {
+                    const container = containers.find(c => c.id === draggingDevice);
+                    if (container) {
+                        container.x = x - container.width / 2;
+                        container.y = y - container.height / 2;
+                        renderContainers();
+                    }
+                } else {
+                    device.x = x;
+                    device.y = y;
+                    
+                    const deviceEl = document.querySelector(`[data-device-id="${draggingDevice}"]`);
+                    if (deviceEl) {
+                        deviceEl.style.left = `${x - 27.5}px`;
+                        deviceEl.style.top = `${y - 27.5}px`;
+                    }
                 }
                 
                 updateConnections();
             }
+        }
+
+        function handleResize(clientX, clientY) {
+            if (!resizingContainer || !resizeHandle) return;
+
+            const container = containers.find(c => c.id === resizingContainer);
+            if (!container) return;
+
+            const deltaX = clientX - resizeStartX;
+            const deltaY = clientY - resizeStartY;
+
+            if (resizeHandle === 'top-left') {
+                container.width = Math.max(150, resizeStartWidth - deltaX);
+                container.height = Math.max(100, resizeStartHeight - deltaY);
+                container.x = resizeStartLeft + (resizeStartWidth - container.width);
+                container.y = resizeStartTop + (resizeStartHeight - container.height);
+            } else if (resizeHandle === 'top-right') {
+                container.width = Math.max(150, resizeStartWidth + deltaX);
+                container.height = Math.max(100, resizeStartHeight - deltaY);
+                container.y = resizeStartTop + (resizeStartHeight - container.height);
+            } else if (resizeHandle === 'bottom-left') {
+                container.width = Math.max(150, resizeStartWidth - deltaX);
+                container.height = Math.max(100, resizeStartHeight + deltaY);
+                container.x = resizeStartLeft + (resizeStartWidth - container.width);
+            } else if (resizeHandle === 'bottom-right') {
+                container.width = Math.max(150, resizeStartWidth + deltaX);
+                container.height = Math.max(100, resizeStartHeight + deltaY);
+            }
+
+            renderContainers();
         }
 
         function updateConnections() {
@@ -973,6 +1415,13 @@
                     animationFrameId = requestAnimationFrame(() => {
                         updateDevicePosition(e.clientX, e.clientY);
                     });
+                } else if (resizingContainer) {
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                    }
+                    animationFrameId = requestAnimationFrame(() => {
+                        handleResize(e.clientX, e.clientY);
+                    });
                 }
             });
 
@@ -986,6 +1435,13 @@
                     document.querySelectorAll('.device-on-canvas').forEach(el => {
                         el.classList.remove('dragging');
                     });
+                    document.querySelectorAll('.container-box').forEach(el => {
+                        el.classList.remove('dragging');
+                    });
+                }
+                if (resizingContainer) {
+                    resizingContainer = null;
+                    resizeHandle = null;
                 }
             });
 
@@ -1001,6 +1457,16 @@
                     animationFrameId = requestAnimationFrame(() => {
                         updateDevicePosition(touch.clientX, touch.clientY);
                     });
+                } else if (resizingContainer) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                    }
+                    animationFrameId = requestAnimationFrame(() => {
+                        handleResize(touch.clientX, touch.clientY);
+                    });
                 }
             }, { passive: false });
 
@@ -1014,6 +1480,13 @@
                     document.querySelectorAll('.device-on-canvas').forEach(el => {
                         el.classList.remove('dragging');
                     });
+                    document.querySelectorAll('.container-box').forEach(el => {
+                        el.classList.remove('dragging');
+                    });
+                }
+                if (resizingContainer) {
+                    resizingContainer = null;
+                    resizeHandle = null;
                 }
                 setTimeout(() => {
                     touchMoved = false;
@@ -1030,6 +1503,13 @@
                     document.querySelectorAll('.device-on-canvas').forEach(el => {
                         el.classList.remove('dragging');
                     });
+                    document.querySelectorAll('.container-box').forEach(el => {
+                        el.classList.remove('dragging');
+                    });
+                }
+                if (resizingContainer) {
+                    resizingContainer = null;
+                    resizeHandle = null;
                 }
             });
         }
@@ -1071,19 +1551,41 @@
                         const x = touch.clientX - rect.left;
                         const y = touch.clientY - rect.top;
 
-                        const newDevice = {
-                            id: Date.now(),
-                            type: draggedDeviceType.id,
-                            name: draggedDeviceType.name,
-                            icon: draggedDeviceType.icon,
-                            color: draggedDeviceType.color,
-                            x: x,
-                            y: y
-                        };
-
-                        devices.push(newDevice);
-                        render();
-                        showNotification(`✅ ${newDevice.name} ditambahkan!`, 'success');
+                        if (draggedDeviceType.isContainer) {
+                            // Create container
+                            const newContainer = {
+                                id: Date.now(),
+                                type: 'container',
+                                name: draggedDeviceType.name,
+                                color: draggedDeviceType.color,
+                                x: x - 100,
+                                y: y - 75,
+                                width: 200,
+                                height: 150,
+                                customName: 'Gedung A'
+                            };
+                            containers.push(newContainer);
+                            devices.push({
+                                id: newContainer.id,
+                                isContainer: true,
+                                name: 'Container'
+                            });
+                            renderContainers();
+                            showNotification(`✅ Container ditambahkan!`, 'success');
+                        } else {
+                            const newDevice = {
+                                id: Date.now(),
+                                type: draggedDeviceType.id,
+                                name: draggedDeviceType.name,
+                                icon: draggedDeviceType.icon,
+                                color: draggedDeviceType.color,
+                                x: x,
+                                y: y
+                            };
+                            devices.push(newDevice);
+                            render();
+                            showNotification(`✅ ${newDevice.name} ditambahkan!`, 'success');
+                        }
                     }
                     
                     draggedDeviceType = null;
@@ -1132,20 +1634,43 @@
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
 
-                const newDevice = {
-                    id: Date.now(),
-                    type: draggedDeviceType.id,
-                    name: draggedDeviceType.name,
-                    icon: draggedDeviceType.icon,
-                    color: draggedDeviceType.color,
-                    x: x,
-                    y: y
-                };
-
-                devices.push(newDevice);
+                if (draggedDeviceType.isContainer) {
+                    // Create container
+                    const newContainer = {
+                        id: Date.now(),
+                        type: 'container',
+                        name: draggedDeviceType.name,
+                        color: draggedDeviceType.color,
+                        x: x - 100,
+                        y: y - 75,
+                        width: 200,
+                        height: 150,
+                        customName: 'Gedung A'
+                    };
+                    containers.push(newContainer);
+                    devices.push({
+                        id: newContainer.id,
+                        isContainer: true,
+                        name: 'Container'
+                    });
+                    renderContainers();
+                    showNotification(`✅ Container ditambahkan!`, 'success');
+                } else {
+                    const newDevice = {
+                        id: Date.now(),
+                        type: draggedDeviceType.id,
+                        name: draggedDeviceType.name,
+                        icon: draggedDeviceType.icon,
+                        color: draggedDeviceType.color,
+                        x: x,
+                        y: y
+                    };
+                    devices.push(newDevice);
+                    render();
+                    showNotification(`✅ ${newDevice.name} ditambahkan!`, 'success');
+                }
+                
                 draggedDeviceType = null;
-                render();
-                showNotification(`✅ ${newDevice.name} ditambahkan!`, 'success');
             });
         }
 
@@ -1419,13 +1944,14 @@
         }
 
         function resetAll() {
-            if (devices.length === 0 && connections.length === 0) {
+            if (devices.length === 0 && connections.length === 0 && containers.length === 0) {
                 showNotification('Canvas sudah kosong!', 'info');
                 return;
             }
             
             devices = [];
             connections = [];
+            containers = [];
             connectingFrom = null;
             score = 0;
             document.getElementById('scoreValue').textContent = '0';
