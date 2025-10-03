@@ -791,7 +791,8 @@
         let infoPanelMinimized = false;
         let sidebarOpen = true;
         let editingDeviceId = null;
-        let lastTapTime = 0;
+        let tapCount = 0;
+        let tapTimer = null;
 
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -1308,27 +1309,37 @@
                     });
                 }
 
-                // Rename label event - Double tap/click
+                // Rename label event - Triple tap/click
                 const label = el.querySelector('.device-label');
                 if (label) {
-                    // Desktop: Double click
-                    label.addEventListener('dblclick', (e) => {
+                    const handleTripleClick = (e, deviceId) => {
                         e.stopPropagation();
-                        startEditLabel(deviceId);
-                    });
-
-                    // Mobile: Double tap
-                    label.addEventListener('touchend', (e) => {
-                        const currentTime = new Date().getTime();
-                        const tapLength = currentTime - lastTapTime;
                         
-                        if (tapLength < 300 && tapLength > 0) {
-                            // Double tap detected
-                            e.stopPropagation();
+                        tapCount++;
+                        
+                        if (tapCount === 1) {
+                            tapTimer = setTimeout(() => {
+                                tapCount = 0;
+                            }, 500); // Reset after 500ms
+                        }
+                        
+                        if (tapCount === 3) {
+                            clearTimeout(tapTimer);
+                            tapCount = 0;
                             e.preventDefault();
                             startEditLabel(deviceId);
+                            showNotification('✏️ Mode Edit Nama', 'info');
                         }
-                        lastTapTime = currentTime;
+                    };
+
+                    // Desktop: Triple click
+                    label.addEventListener('click', (e) => {
+                        handleTripleClick(e, deviceId);
+                    });
+
+                    // Mobile: Triple tap
+                    label.addEventListener('touchend', (e) => {
+                        handleTripleClick(e, deviceId);
                     });
                 }
             });
