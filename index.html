@@ -400,9 +400,9 @@
         .device-on-canvas {
             position: absolute;
             cursor: move;
-            transition: transform 0.1s;
             user-select: none;
             touch-action: none;
+            will-change: transform;
         }
 
         .device-on-canvas:hover {
@@ -420,8 +420,7 @@
         }
 
         .device-on-canvas.dragging {
-            opacity: 0.8;
-            transform: scale(1.15);
+            opacity: 0.9;
             z-index: 1000;
             cursor: grabbing;
         }
@@ -855,6 +854,7 @@
         let draggingDevice = null;
         let dragOffset = { x: 0, y: 0 };
         let touchMoved = false;
+        let animationFrameId = null;
 
         function showNotification(message, type = 'info') {
             const notif = document.getElementById('notification');
@@ -887,27 +887,67 @@
             });
         }
 
+        function updateDevicePosition(clientX, clientY) {
+            if (!draggingDevice) return;
+            
+            const canvas = document.getElementById('canvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.max(40, Math.min(rect.width - 40, clientX - rect.left));
+            const y = Math.max(40, Math.min(rect.height - 40, clientY - rect.top));
+            
+            const device = devices.find(d => d.id === draggingDevice);
+            if (device) {
+                device.x = x;
+                device.y = y;
+                
+                // Update position langsung tanpa re-render penuh
+                const deviceEl = document.querySelector(`[data-device-id="${draggingDevice}"]`);
+                if (deviceEl) {
+                    deviceEl.style.left = `${x - 35}px`;
+                    deviceEl.style.top = `${y - 35}px`;
+                }
+                
+                // Update connections
+                updateConnections();
+            }
+        }
+
+        function updateConnections() {
+            const svg = document.getElementById('connectionsSVG');
+            const paths = svg.querySelectorAll('.connection-group');
+            
+            connections.forEach((conn, index) => {
+                const from = devices.find(d => d.id === conn.from);
+                const to = devices.find(d => d.id === conn.to);
+                if (!from || !to) return;
+                
+                const pathEl = svg.querySelector(`#path-${conn.id}`);
+                if (pathEl) {
+                    pathEl.setAttribute('d', `M ${from.x} ${from.y} L ${to.x} ${to.y}`);
+                }
+            });
+        }
+
         function setupMouseHandlers() {
             // Mouse events for desktop
             document.addEventListener('mousemove', (e) => {
                 if (draggingDevice) {
-                    const canvas = document.getElementById('canvas');
-                    const rect = canvas.getBoundingClientRect();
-                    const x = Math.max(40, Math.min(rect.width - 40, e.clientX - rect.left));
-                    const y = Math.max(40, Math.min(rect.height - 40, e.clientY - rect.top));
-                    
-                    const device = devices.find(d => d.id === draggingDevice);
-                    if (device) {
-                        device.x = x;
-                        device.y = y;
-                        render();
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
                     }
+                    animationFrameId = requestAnimationFrame(() => {
+                        updateDevicePosition(e.clientX, e.clientY);
+                    });
                 }
             });
 
             document.addEventListener('mouseup', () => {
                 if (draggingDevice) {
                     draggingDevice = null;
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
                     document.querySelectorAll('.device-on-canvas').forEach(el => {
                         el.classList.remove('dragging');
                     });
@@ -920,23 +960,23 @@
                     e.preventDefault();
                     touchMoved = true;
                     const touch = e.touches[0];
-                    const canvas = document.getElementById('canvas');
-                    const rect = canvas.getBoundingClientRect();
-                    const x = Math.max(40, Math.min(rect.width - 40, touch.clientX - rect.left));
-                    const y = Math.max(40, Math.min(rect.height - 40, touch.clientY - rect.top));
                     
-                    const device = devices.find(d => d.id === draggingDevice);
-                    if (device) {
-                        device.x = x;
-                        device.y = y;
-                        render();
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
                     }
+                    animationFrameId = requestAnimationFrame(() => {
+                        updateDevicePosition(touch.clientX, touch.clientY);
+                    });
                 }
             }, { passive: false });
 
             document.addEventListener('touchend', () => {
                 if (draggingDevice) {
                     draggingDevice = null;
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
                     document.querySelectorAll('.device-on-canvas').forEach(el => {
                         el.classList.remove('dragging');
                     });
@@ -949,6 +989,10 @@
             document.addEventListener('touchcancel', () => {
                 if (draggingDevice) {
                     draggingDevice = null;
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
                     document.querySelectorAll('.device-on-canvas').forEach(el => {
                         el.classList.remove('dragging');
                     });
