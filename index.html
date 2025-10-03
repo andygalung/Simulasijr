@@ -25,356 +25,250 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            padding: 10px;
-            gap: 10px;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .container {
-                padding: 5px;
-                gap: 5px;
-            }
+            padding: 8px;
+            gap: 8px;
         }
 
         .header {
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(20px);
-            border-radius: 15px;
-            padding: 12px 15px;
+            border-radius: 12px;
+            padding: 10px 12px;
             border: 1px solid rgba(147, 51, 234, 0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .header {
-                padding: 8px 12px;
-                border-radius: 10px;
-            }
+            flex-shrink: 0;
         }
 
         .header-left h1 {
-            font-size: 1.5rem;
+            font-size: 1.1rem;
             background: linear-gradient(to right, #60a5fa, #a78bfa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .header-left h1 {
-                font-size: 1rem;
-            }
-        }
-
         .header-left p {
             color: #9ca3af;
-            font-size: 0.8rem;
+            font-size: 0.65rem;
             margin-top: 2px;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .header-left p {
-                font-size: 0.65rem;
-                margin-top: 0;
-            }
         }
 
         .header-right {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .header-right {
-                gap: 8px;
-            }
         }
 
         .score {
             background: linear-gradient(to right, #f59e0b, #ea580c);
-            padding: 10px 18px;
-            border-radius: 12px;
+            padding: 6px 12px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 1rem;
-            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .score {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-                border-radius: 8px;
-            }
+            font-size: 0.8rem;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+            white-space: nowrap;
         }
 
         .btn-reset {
             background: #ef4444;
-            padding: 10px 18px;
+            padding: 6px 12px;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             color: white;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .btn-reset {
-                padding: 6px 12px;
-                font-size: 0.75rem;
-                border-radius: 8px;
-            }
-        }
-
-        .btn-reset:hover {
-            background: #dc2626;
-            transform: scale(1.05);
+            font-size: 0.75rem;
         }
 
         .main-content {
             display: flex;
-            gap: 15px;
+            flex-direction: column;
+            gap: 8px;
             flex: 1;
             overflow: hidden;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .main-content {
-                gap: 8px;
-            }
+            min-height: 0;
         }
 
         .sidebar {
-            width: 240px;
             background: rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(20px);
-            border-radius: 15px;
-            padding: 12px;
+            border-radius: 12px;
+            padding: 10px;
             border: 1px solid rgba(147, 51, 234, 0.3);
+            flex-shrink: 0;
+            max-height: 35vh;
             overflow-y: auto;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .sidebar {
-                width: 180px;
-                padding: 8px;
-                border-radius: 10px;
-            }
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
         }
 
         .sidebar h2 {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            margin: 0;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .sidebar h2 {
-                font-size: 0.85rem;
-                margin-bottom: 6px;
-                gap: 5px;
-            }
+        .toggle-btn {
+            background: rgba(147, 51, 234, 0.3);
+            border: 1px solid rgba(147, 51, 234, 0.5);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn:active {
+            background: rgba(147, 51, 234, 0.5);
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
         }
 
         .device-item {
             background: linear-gradient(to right, #374151, #1f2937);
-            padding: 10px;
-            border-radius: 12px;
-            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 10px;
             cursor: move;
             transition: all 0.3s;
             border: 2px solid transparent;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 4px;
             touch-action: none;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .device-item {
-                padding: 6px;
-                border-radius: 8px;
-                margin-bottom: 5px;
-                gap: 6px;
-            }
-        }
-
-        .device-item:hover {
-            transform: scale(1.05);
+        .device-item:active {
+            transform: scale(0.95);
             border-color: #a78bfa;
         }
 
         .device-icon {
-            font-size: 1.5rem;
-            width: 40px;
-            height: 40px;
+            font-size: 1.8rem;
+            width: 45px;
+            height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .device-icon {
-                font-size: 1.2rem;
-                width: 30px;
-                height: 30px;
-                border-radius: 6px;
-            }
-        }
-
-        .device-info {
-            flex: 1;
+            border-radius: 10px;
         }
 
         .device-name {
             font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .device-name {
-                font-size: 0.7rem;
-            }
-        }
-
-        .device-desc {
             font-size: 0.7rem;
-            color: #9ca3af;
+            text-align: center;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .device-desc {
-                font-size: 0.6rem;
-            }
+        .cables-container {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
         }
 
         .cable-item {
-            padding: 10px;
-            border-radius: 12px;
-            margin-bottom: 8px;
+            flex: 1;
+            padding: 8px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s;
             background: #1f2937;
             touch-action: none;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .cable-item {
-                padding: 6px;
-                border-radius: 8px;
-                margin-bottom: 5px;
-            }
-        }
-
-        .cable-item:hover {
-            background: #374151;
+            text-align: center;
         }
 
         .cable-item.active {
             background: linear-gradient(to right, #7c3aed, #2563eb);
             transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        .cable-item:active {
+            transform: scale(0.95);
         }
 
         .cable-header {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .cable-header {
-                gap: 6px;
-                margin-bottom: 3px;
-            }
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 4px;
         }
 
         .cable-dot {
-            width: 14px;
-            height: 14px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .cable-dot {
-                width: 10px;
-                height: 10px;
-            }
+        .cable-name {
+            font-weight: bold;
+            font-size: 0.7rem;
         }
 
         .cable-desc {
-            font-size: 0.7rem;
+            font-size: 0.6rem;
             color: #9ca3af;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .cable-desc {
-                font-size: 0.6rem;
-            }
+        .help-toggle {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 6px;
         }
 
-        .help-box {
-            margin-top: 15px;
-            padding: 10px;
+        .help-content {
+            display: none;
+            margin-top: 6px;
+            padding: 8px;
             background: linear-gradient(to right, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.2));
-            border-radius: 12px;
+            border-radius: 8px;
             border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .help-box {
-                margin-top: 8px;
-                padding: 6px;
-                border-radius: 8px;
-            }
+        .help-content.show {
+            display: block;
         }
 
-        .help-box h3 {
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .help-box h3 {
-                margin-bottom: 5px;
-                font-size: 0.7rem;
-            }
-        }
-
-        .help-box ol {
-            padding-left: 16px;
+        .help-content h3 {
+            margin-bottom: 6px;
             font-size: 0.75rem;
+        }
+
+        .help-content ol {
+            padding-left: 14px;
+            font-size: 0.65rem;
             color: #d1d5db;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .help-box ol {
-                padding-left: 12px;
-                font-size: 0.6rem;
-            }
-        }
-
-        .help-box li {
-            margin-bottom: 3px;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .help-box li {
-                margin-bottom: 2px;
-            }
+        .help-content li {
+            margin-bottom: 2px;
         }
 
         .canvas-area {
             flex: 1;
             position: relative;
+            min-height: 0;
         }
 
         .canvas {
@@ -382,19 +276,12 @@
             height: 100%;
             background: rgba(0, 0, 0, 0.2);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
+            border-radius: 12px;
             border: 2px dashed rgba(147, 51, 234, 0.5);
             position: relative;
             overflow: hidden;
             background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .canvas {
-                border-radius: 12px;
-                background-size: 20px 20px;
-            }
+            background-size: 20px 20px;
         }
 
         .device-on-canvas {
@@ -403,16 +290,6 @@
             user-select: none;
             touch-action: none;
             will-change: transform;
-        }
-
-        .device-on-canvas:hover {
-            transform: scale(1.1);
-        }
-
-        @media (hover: none) {
-            .device-on-canvas:hover {
-                transform: none;
-            }
         }
 
         .device-on-canvas.connecting {
@@ -431,87 +308,48 @@
         }
 
         .device-box {
-            width: 70px;
-            height: 70px;
-            border-radius: 15px;
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid;
-            font-size: 2rem;
+            border: 2px solid;
+            font-size: 1.8rem;
             position: relative;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .device-box {
-                width: 50px;
-                height: 50px;
-                border-radius: 10px;
-                border: 2px solid;
-                font-size: 1.5rem;
-            }
         }
 
         .delete-btn {
             position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 28px;
-            height: 28px;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
             background: #ef4444;
             border-radius: 50%;
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.8rem;
             font-weight: bold;
             border: 2px solid white;
             z-index: 10;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .delete-btn {
-                width: 22px;
-                height: 22px;
-                font-size: 0.8rem;
-                top: -8px;
-                right: -8px;
-            }
-        }
-
-        .device-on-canvas:hover .delete-btn {
-            display: flex;
-        }
-
-        @media (hover: none) {
-            .delete-btn {
-                display: flex !important;
-            }
-        }
-
-        .delete-btn:hover {
+        .delete-btn:active {
             background: #dc2626;
-            transform: scale(1.2);
+            transform: scale(1.1);
         }
 
         .device-label {
             text-align: center;
-            font-size: 0.7rem;
-            margin-top: 5px;
+            font-size: 0.6rem;
+            margin-top: 3px;
             font-weight: bold;
             background: rgba(0, 0, 0, 0.6);
-            padding: 3px 6px;
-            border-radius: 6px;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .device-label {
-                font-size: 0.6rem;
-                margin-top: 3px;
-                padding: 2px 4px;
-                border-radius: 4px;
-            }
+            padding: 2px 5px;
+            border-radius: 5px;
         }
 
         .empty-state {
@@ -526,76 +364,38 @@
 
         .empty-state-icon {
             font-size: 3rem;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             opacity: 0.3;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .empty-state-icon {
-                font-size: 2rem;
-                margin-bottom: 8px;
-            }
-            .empty-state p:first-of-type {
-                font-size: 1rem !important;
-            }
-            .empty-state p:last-of-type {
-                font-size: 0.7rem !important;
-            }
         }
 
         .info-panel {
             position: absolute;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(0, 0, 0, 0.6);
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(20px);
-            padding: 12px;
-            border-radius: 12px;
+            padding: 8px;
+            border-radius: 10px;
             border: 1px solid rgba(147, 51, 234, 0.3);
-            max-height: 300px;
+            max-height: 40vh;
             overflow-y: auto;
-            min-width: 200px;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .info-panel {
-                bottom: 8px;
-                right: 8px;
-                padding: 8px;
-                border-radius: 8px;
-                max-height: 200px;
-                min-width: 150px;
-                font-size: 0.75rem;
-            }
+            min-width: 140px;
+            max-width: 200px;
         }
 
         .info-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .info-item {
-                gap: 5px;
-                margin-bottom: 5px;
-                font-size: 0.65rem;
-            }
+            gap: 6px;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
         }
 
         .info-dot {
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .info-dot {
-                width: 8px;
-                height: 8px;
-            }
+            flex-shrink: 0;
         }
 
         .info-dot.green {
@@ -608,80 +408,54 @@
         }
 
         .cable-list {
-            margin-top: 12px;
-            padding-top: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 1px solid rgba(147, 51, 234, 0.3);
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .cable-list {
-                margin-top: 8px;
-                padding-top: 8px;
-            }
         }
 
         .cable-list-title {
             font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
             color: #a78bfa;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            .cable-list-title {
-                margin-bottom: 5px;
-                font-size: 0.7rem;
-            }
         }
 
         .cable-list-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px;
-            margin-bottom: 5px;
+            padding: 5px;
+            margin-bottom: 4px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 6px;
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             transition: all 0.2s;
+            gap: 4px;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .cable-list-item {
-                padding: 4px;
-                margin-bottom: 3px;
-                border-radius: 4px;
-                font-size: 0.6rem;
-            }
-        }
-
-        .cable-list-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .cable-list-item span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .cable-delete-btn {
             background: #ef4444;
             color: white;
             border: none;
-            padding: 4px 8px;
-            border-radius: 5px;
+            padding: 3px 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: bold;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .cable-delete-btn {
-                padding: 3px 6px;
-                border-radius: 4px;
-                font-size: 0.6rem;
-            }
-        }
-
-        .cable-delete-btn:hover {
+        .cable-delete-btn:active {
             background: #dc2626;
-            transform: scale(1.1);
+            transform: scale(0.95);
         }
 
         @keyframes blink {
@@ -709,36 +483,30 @@
 
         .notification {
             position: fixed;
-            top: 100px;
-            right: 30px;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
             border: 2px solid;
-            padding: 15px 25px;
-            border-radius: 15px;
+            padding: 10px 20px;
+            border-radius: 10px;
             font-weight: bold;
             z-index: 2000;
-            animation: slideIn 0.3s ease-out;
+            animation: slideDown 0.3s ease-out;
             display: none;
+            font-size: 0.8rem;
+            max-width: 90%;
+            text-align: center;
         }
 
-        @media (max-width: 768px) and (orientation: landscape) {
-            .notification {
-                top: 60px;
-                right: 15px;
-                padding: 10px 15px;
-                font-size: 0.8rem;
-                border-radius: 10px;
-            }
-        }
-
-        @keyframes slideIn {
+        @keyframes slideDown {
             from {
-                transform: translateX(400px);
+                transform: translateX(-50%) translateY(-50px);
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateX(-50%) translateY(0);
                 opacity: 1;
             }
         }
@@ -757,38 +525,62 @@
             border-color: #3b82f6;
             color: #3b82f6;
         }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(147, 51, 234, 0.5);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(147, 51, 234, 0.7);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="header-left">
-                <h1>🌐 Simulasi Jaringan Komputer</h1>
-                <p>SMK - Media Pembelajaran Interaktif</p>
+                <h1>🌐 Simulasi Jaringan</h1>
+                <p>SMK - Media Pembelajaran</p>
             </div>
             <div class="header-right">
-                <div class="score">🏆 Skor: <span id="scoreValue">0</span></div>
-                <button class="btn-reset" onclick="resetAll()">🗑️ Reset</button>
+                <div class="score">🏆 <span id="scoreValue">0</span></div>
+                <button class="btn-reset" onclick="resetAll()">🗑️</button>
             </div>
         </div>
 
         <div class="main-content">
             <div class="sidebar">
-                <h2>🔧 Komponen Jaringan</h2>
-                <div id="deviceList"></div>
+                <div class="sidebar-header">
+                    <h2>🔧 Komponen</h2>
+                </div>
+                <div class="components-grid" id="deviceList"></div>
 
-                <h2 style="margin-top: 20px;">🔌 Jenis Kabel</h2>
-                <div id="cableList"></div>
+                <h2 style="margin-top: 8px; margin-bottom: 8px;">🔌 Kabel</h2>
+                <div class="cables-container" id="cableList"></div>
 
-                <div class="help-box">
-                    <h3>💡 Cara Bermain:</h3>
+                <div class="help-toggle" onclick="toggleHelp()">
+                    💡 <span id="helpToggleText">Tampilkan Bantuan</span>
+                </div>
+                <div class="help-content" id="helpContent">
+                    <h3>Cara Bermain:</h3>
                     <ol>
-                        <li>Drag/Touch komponen ke canvas</li>
+                        <li>Tap & drag komponen ke canvas</li>
                         <li>Geser komponen di canvas</li>
-                        <li>Tombol ❌ untuk hapus</li>
+                        <li>Tap ❌ untuk hapus</li>
                         <li>Pilih kabel, tap 2 device</li>
                         <li>Hapus kabel di panel kanan bawah</li>
-                        <li>ESC untuk batal koneksi</li>
                     </ol>
                 </div>
             </div>
@@ -799,27 +591,27 @@
                     <div class="devices-layer" id="devicesLayer"></div>
                     <div class="empty-state" id="emptyState">
                         <div class="empty-state-icon">💻</div>
-                        <p style="font-size: 1.3rem; font-weight: bold;">Drag komponen ke sini untuk mulai!</p>
-                        <p style="font-size: 0.9rem; margin-top: 10px;">Buat topologi jaringan kamu sendiri</p>
+                        <p style="font-size: 1rem; font-weight: bold;">Tap komponen lalu<br>drag ke sini!</p>
+                        <p style="font-size: 0.75rem; margin-top: 8px;">Buat topologi jaringan</p>
                     </div>
                 </div>
 
                 <div class="info-panel">
                     <div class="info-item">
                         <div class="info-dot green"></div>
-                        <span>Koneksi Benar: <strong id="correctCount">0</strong></span>
+                        <span>Benar: <strong id="correctCount">0</strong></span>
                     </div>
                     <div class="info-item">
                         <div class="info-dot red"></div>
-                        <span>Koneksi Salah: <strong id="wrongCount">0</strong></span>
+                        <span>Salah: <strong id="wrongCount">0</strong></span>
                     </div>
                     <div class="info-item">
-                        <div style="width: 12px; text-align: center;">💻</div>
-                        <span>Total Device: <strong id="deviceCount">0</strong></span>
+                        <div style="width: 8px; text-align: center;">💻</div>
+                        <span>Device: <strong id="deviceCount">0</strong></span>
                     </div>
 
                     <div class="cable-list" id="cableListPanel">
-                        <div class="cable-list-title">📋 Daftar Kabel:</div>
+                        <div class="cable-list-title">📋 Kabel:</div>
                         <div id="cableListContent"></div>
                     </div>
                 </div>
@@ -835,14 +627,14 @@
             { id: 'server', name: 'Server', icon: '🖥️', color: '#a78bfa' },
             { id: 'router', name: 'Router', icon: '📡', color: '#f59e0b' },
             { id: 'switch', name: 'Switch', icon: '🔀', color: '#10b981' },
-            { id: 'ap', name: 'Access Point', icon: '📶', color: '#ec4899' },
+            { id: 'ap', name: 'AP', icon: '📶', color: '#ec4899' },
             { id: 'printer', name: 'Printer', icon: '🖨️', color: '#6366f1' }
         ];
 
         const cableTypes = [
-            { id: 'straight', name: 'Straight-Through', color: '#3b82f6', desc: 'PC ↔ Switch/Router' },
-            { id: 'crossover', name: 'Crossover', color: '#ef4444', desc: 'PC ↔ PC, Router ↔ Router' },
-            { id: 'fiber', name: 'Fiber Optic', color: '#f59e0b', desc: 'Jarak jauh, kecepatan tinggi' }
+            { id: 'straight', name: 'Straight', color: '#3b82f6', desc: 'PC-Switch' },
+            { id: 'crossover', name: 'Cross', color: '#ef4444', desc: 'PC-PC' },
+            { id: 'fiber', name: 'Fiber', color: '#f59e0b', desc: 'Jarak jauh' }
         ];
 
         let devices = [];
@@ -852,9 +644,16 @@
         let score = 0;
         let draggedDeviceType = null;
         let draggingDevice = null;
-        let dragOffset = { x: 0, y: 0 };
         let touchMoved = false;
         let animationFrameId = null;
+
+        function toggleHelp() {
+            const helpContent = document.getElementById('helpContent');
+            const helpToggleText = document.getElementById('helpToggleText');
+            helpContent.classList.toggle('show');
+            helpToggleText.textContent = helpContent.classList.contains('show') ? 
+                'Sembunyikan Bantuan' : 'Tampilkan Bantuan';
+        }
 
         function showNotification(message, type = 'info') {
             const notif = document.getElementById('notification');
@@ -892,31 +691,28 @@
             
             const canvas = document.getElementById('canvas');
             const rect = canvas.getBoundingClientRect();
-            const x = Math.max(40, Math.min(rect.width - 40, clientX - rect.left));
-            const y = Math.max(40, Math.min(rect.height - 40, clientY - rect.top));
+            const x = Math.max(30, Math.min(rect.width - 30, clientX - rect.left));
+            const y = Math.max(30, Math.min(rect.height - 30, clientY - rect.top));
             
             const device = devices.find(d => d.id === draggingDevice);
             if (device) {
                 device.x = x;
                 device.y = y;
                 
-                // Update position langsung tanpa re-render penuh
                 const deviceEl = document.querySelector(`[data-device-id="${draggingDevice}"]`);
                 if (deviceEl) {
-                    deviceEl.style.left = `${x - 35}px`;
-                    deviceEl.style.top = `${y - 35}px`;
+                    deviceEl.style.left = `${x - 27.5}px`;
+                    deviceEl.style.top = `${y - 27.5}px`;
                 }
                 
-                // Update connections
                 updateConnections();
             }
         }
 
         function updateConnections() {
             const svg = document.getElementById('connectionsSVG');
-            const paths = svg.querySelectorAll('.connection-group');
             
-            connections.forEach((conn, index) => {
+            connections.forEach((conn) => {
                 const from = devices.find(d => d.id === conn.from);
                 const to = devices.find(d => d.id === conn.to);
                 if (!from || !to) return;
@@ -929,7 +725,6 @@
         }
 
         function setupMouseHandlers() {
-            // Mouse events for desktop
             document.addEventListener('mousemove', (e) => {
                 if (draggingDevice) {
                     if (animationFrameId) {
@@ -954,7 +749,6 @@
                 }
             });
 
-            // Touch events for mobile
             document.addEventListener('touchmove', (e) => {
                 if (draggingDevice) {
                     e.preventDefault();
@@ -1003,24 +797,15 @@
         function renderDeviceList() {
             const list = document.getElementById('deviceList');
             list.innerHTML = deviceTypes.map(device => `
-                <div class="device-item" draggable="true" data-device='${JSON.stringify(device)}'>
+                <div class="device-item" data-device='${JSON.stringify(device)}'>
                     <div class="device-icon" style="background: ${device.color}30; border: 2px solid ${device.color};">
                         ${device.icon}
                     </div>
-                    <div class="device-info">
-                        <div class="device-name">${device.name}</div>
-                        <div class="device-desc">Drag ke canvas</div>
-                    </div>
+                    <div class="device-name">${device.name}</div>
                 </div>
             `).join('');
 
             document.querySelectorAll('.device-item').forEach(item => {
-                // Desktop drag
-                item.addEventListener('dragstart', (e) => {
-                    draggedDeviceType = JSON.parse(e.target.closest('.device-item').dataset.device);
-                });
-
-                // Mobile touch
                 let touchStartX, touchStartY;
                 item.addEventListener('touchstart', (e) => {
                     const touch = e.touches[0];
@@ -1040,7 +825,6 @@
                     const canvas = document.getElementById('canvas');
                     const rect = canvas.getBoundingClientRect();
                     
-                    // Check if touch ended on canvas
                     if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
                         touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
                         
@@ -1073,7 +857,7 @@
                 <div class="cable-item ${cable.id === selectedCable ? 'active' : ''}" data-cable="${cable.id}">
                     <div class="cable-header">
                         <div class="cable-dot" style="background: ${cable.color};"></div>
-                        <strong>${cable.name}</strong>
+                        <div class="cable-name">${cable.name}</div>
                     </div>
                     <div class="cable-desc">${cable.desc}</div>
                 </div>
@@ -1098,7 +882,6 @@
         function setupCanvas() {
             const canvas = document.getElementById('canvas');
             
-            // Desktop drag & drop
             canvas.addEventListener('dragover', (e) => e.preventDefault());
             
             canvas.addEventListener('drop', (e) => {
@@ -1161,7 +944,6 @@
             e.stopPropagation();
             e.preventDefault();
             
-            // Ignore if touch moved (was dragging)
             if (touchMoved) {
                 touchMoved = false;
                 return;
@@ -1170,7 +952,7 @@
             if (!connectingFrom) {
                 connectingFrom = deviceId;
                 render();
-                showNotification('🔌 Pilih device kedua untuk koneksi', 'info');
+                showNotification('🔌 Pilih device kedua', 'info');
             } else {
                 if (connectingFrom !== deviceId) {
                     const isValid = validateConnection(connectingFrom, deviceId, selectedCable);
@@ -1186,9 +968,9 @@
                     if (isValid) {
                         score += 10;
                         document.getElementById('scoreValue').textContent = score;
-                        showNotification('✅ Koneksi BENAR! +10 poin', 'success');
+                        showNotification('✅ BENAR! +10', 'success');
                     } else {
-                        showNotification('❌ Koneksi SALAH! Cek jenis kabel', 'error');
+                        showNotification('❌ SALAH!', 'error');
                     }
                 }
                 connectingFrom = null;
@@ -1218,7 +1000,7 @@
             e.preventDefault();
             connections = connections.filter(c => c.id !== connId);
             render();
-            showNotification('🗑️ Koneksi dihapus!', 'info');
+            showNotification('🗑️ Kabel dihapus!', 'info');
         }
 
         function startDragDevice(deviceId, e) {
@@ -1238,9 +1020,9 @@
 
             devicesLayer.innerHTML = devices.map(device => `
                 <div class="device-on-canvas ${connectingFrom === device.id ? 'connecting' : ''}" 
-                     style="left: ${device.x - 35}px; top: ${device.y - 35}px;"
+                     style="left: ${device.x - 27.5}px; top: ${device.y - 27.5}px;"
                      data-device-id="${device.id}">
-                    <div class="device-box" style="background: ${device.color}30; border-color: ${device.color}; box-shadow: ${connectingFrom === device.id ? `0 0 30px ${device.color}` : `0 10px 30px ${device.color}60`};">
+                    <div class="device-box" style="background: ${device.color}30; border-color: ${device.color}; box-shadow: ${connectingFrom === device.id ? `0 0 20px ${device.color}` : `0 5px 15px ${device.color}60`};">
                         ${device.icon}
                         <div class="delete-btn" data-device-id="${device.id}">✕</div>
                     </div>
@@ -1248,11 +1030,9 @@
                 </div>
             `).join('');
 
-            // Event handlers untuk devices
             document.querySelectorAll('.device-on-canvas').forEach(el => {
                 const deviceId = parseInt(el.dataset.deviceId);
                 
-                // Click/Tap for connecting
                 el.addEventListener('click', (e) => handleDeviceClick(deviceId, e));
                 el.addEventListener('touchend', (e) => {
                     if (!touchMoved) {
@@ -1260,14 +1040,12 @@
                     }
                 });
                 
-                // Mouse drag
                 el.addEventListener('mousedown', (e) => {
                     if (!e.target.closest('.delete-btn')) {
                         startDragDevice(deviceId, e);
                     }
                 });
 
-                // Touch drag
                 el.addEventListener('touchstart', (e) => {
                     if (!e.target.closest('.delete-btn')) {
                         touchMoved = false;
@@ -1281,7 +1059,6 @@
                     }
                 }, { passive: true });
                 
-                // Delete button
                 const deleteBtn = el.querySelector('.delete-btn');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', (e) => {
@@ -1293,12 +1070,11 @@
                 }
             });
 
-            // Render cable list panel
             if (connections.length === 0) {
                 cableListPanel.style.display = 'none';
             } else {
                 cableListPanel.style.display = 'block';
-                cableListContent.innerHTML = connections.map((conn, index) => {
+                cableListContent.innerHTML = connections.map((conn) => {
                     const from = devices.find(d => d.id === conn.from);
                     const to = devices.find(d => d.id === conn.to);
                     if (!from || !to) return '';
@@ -1307,13 +1083,12 @@
                     
                     return `
                         <div class="cable-list-item">
-                            <span>${statusIcon} ${from.name} ↔ ${to.name}</span>
+                            <span>${statusIcon} ${from.name}↔${to.name}</span>
                             <button class="cable-delete-btn" data-conn-id="${conn.id}">🗑️</button>
                         </div>
                     `;
                 }).join('');
 
-                // Event listener untuk delete buttons di panel
                 setTimeout(() => {
                     document.querySelectorAll('.cable-delete-btn').forEach(btn => {
                         const deleteFunc = (e) => {
@@ -1328,7 +1103,6 @@
                 }, 0);
             }
 
-            // Render SVG connections
             svg.innerHTML = connections.map(conn => {
                 const from = devices.find(d => d.id === conn.from);
                 const to = devices.find(d => d.id === conn.to);
@@ -1336,7 +1110,7 @@
 
                 const pathId = `path-${conn.id}`;
                 const color = conn.valid ? '#10b981' : '#ef4444';
-                const dashArray = conn.cable === 'fiber' ? '10,5' : '0';
+                const dashArray = conn.cable === 'fiber' ? '8,4' : '0';
 
                 return `
                     <g class="connection-group" data-conn-id="${conn.id}">
@@ -1344,13 +1118,13 @@
                               class="connection-path"
                               d="M ${from.x} ${from.y} L ${to.x} ${to.y}" 
                               stroke="${color}" 
-                              stroke-width="4" 
+                              stroke-width="3" 
                               stroke-dasharray="${dashArray}" 
                               opacity="0.8" 
                               fill="none"
                               style="transition: all 0.2s;"/>
                         ${conn.valid ? `
-                            <circle r="4" fill="#10b981" pointer-events="none">
+                            <circle r="3" fill="#10b981" pointer-events="none">
                                 <animateMotion dur="2s" repeatCount="indefinite">
                                     <mpath href="#${pathId}"/>
                                 </animateMotion>
