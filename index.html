@@ -1,290 +1,432 @@
 <!DOCTYPE html>
-// Delete container
-                const deleteBtn = el.querySelector('.container-delete-btn');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteContainer(containerId);
-                    });
-                    deleteBtn.addEventListener('touchend', (e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        deleteContainer(containerId);
-                    });
-                }
-
-                // Resize handles
-                el.querySelectorAll('.resize-handle').forEach(handle => {
-                    const handleType = handle.dataset.handle;
-                    
-                    handle.addEventListener('mousedown', (e) => {
-                        e.stopPropagation();
-                        const container = containers.find(c => c.id === containerId);
-                        if (container) {
-                            resizingContainer = containerId;
-                            resizeHandle = handleType;
-                            resizeStartX = e.clientX;
-                            resizeStartY = e.clientY;
-                            resizeStartWidth = container.width;
-                            resizeStartHeight = container.height;
-                            resizeStartLeft = container.x;
-                            resizeStartTop = container.y;
-                        }
-                    });
-
-                    handle.addEventListener('touchstart', (e) => {
-                        e.stopPropagation();
-                        const touch = e.touches[0];
-                        const container = containers.find(c => c.id === containerId);
-                        if (container) {
-                            resizingContainer = containerId;
-                            resizeHandle = handleType;
-                            resizeStartX = touch.clientX;
-                            resizeStartY = touch.clientY;
-                            resizeStartWidth = container.width;
-                            resizeStartHeight = container.height;
-                            resizeStartLeft = container.x;
-                            resizeStartTop = container.y;
-                        }
-                    }, { passive: true });
-                });
-            });
-
-            // Re-add device event listeners
-            document.querySelectorAll('.device-on-canvas').forEach(el => {
-                const deviceId = parseInt(el.dataset.deviceId);
-                
-                el.addEventListener('click', (e) => handleDeviceClick(deviceId, e));
-                el.addEventListener('touchend', (e) => {
-                    if (!touchMoved) {
-                        handleDeviceClick(deviceId, e);
-                    }
-                });
-                
-                el.addEventListener('mousedown', (e) => {
-                    if (!e.target.closest('.delete-btn')) {
-                        startDragDevice(deviceId, e);
-                    }
-                });
-
-                el.addEventListener('touchstart', (e) => {
-                    if (!e.target.closest('.delete-btn')) {
-                        touchMoved = false;
-                        startDragDevice(deviceId, e);
-                    }
-                }, { passive: true });
-
-                el.addEventListener('touchmove', (e) => {
-                    if (draggingDevice === deviceId) {
-                        touchMoved = true;
-                    }
-                }, { passive: true });
-                
-                const deleteBtn = el.querySelector('.delete-btn');
-                if (deleteBtn) {
-                    deleteBtn.addEventListener('click', (e) => {
-                        deleteDevice(deviceId, e);
-                    });
-                    deleteBtn.addEventListener('touchend', (e) => {
-                        deleteDevice(deviceId, e);
-                    });
-                }
-
-                // Rename label event - Triple tap/click
-                const label = el.querySelector('.device-label');
-                if (label) {
-                    const handleTripleClick = (e, deviceId) => {
-                        e.stopPropagation();
-                        
-                        tapCount++;
-                        
-                        if (tapCount === 1) {
-                            tapTimer = setTimeout(() => {
-                                tapCount = 0;
-                            }, 500);
-                        }
-                        
-                        if (tapCount === 3) {
-                            clearTimeout(tapTimer);
-                            tapCount = 0;
-                            e.preventDefault();
-                            startEditLabel(deviceId);
-                            showNotification('✏️ Mode Edit Nama', 'info');
-                        }
-                    };
-
-                    label.addEventListener('click', (e) => {
-                        handleTripleClick(e, deviceId);
-                    });
-
-                    label.addEventListener('touchend', (e) => {
-                        handleTripleClick(e, deviceId);
-                    });
-                }
-            });
-
-            updateStats();
-        }
-
-        function startEditContainerLabel(containerId) {
-            if (editingContainerId) return;
-            
-            editingContainerId = containerId;
-            const container = containers.find(c => c.id === containerId);
-            if (!container) return;
-
-            const labelEl = document.querySelector(`[data-container-id="${containerId}"] .container-label`);
-            if (!labelEl) return;
-
-            const currentName = container.customName || container.name;
-            
-            labelEl.classList.add('editing');
-            labelEl.innerHTML = `<input type="text" class="container-label-input" value="${currentName}" maxlength="30">`;
-            
-            const input = labelEl.querySelector('input');
-            input.focus();
-            input.select();
-
-            input.addEventListener('blur', () => finishEditContainerLabel(containerId));
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    finishEditContainerLabel(containerId);
-                } else if (e.key === 'Escape') {
-                    cancelEditContainerLabel(containerId);
-                }
-            });
-
-            input.addEventListener('click', (e) => e.stopPropagation());
-            input.addEventListener('touchstart', (e) => e.stopPropagation());
-        }
-
-        function finishEditContainerLabel(containerId) {
-            if (!editingContainerId) return;
-
-            const container = containers.find(c => c.id === containerId);
-            if (!container) return;
-
-            const labelEl = document.querySelector(`[data-container-id="${containerId}"] .container-label`);
-            if (!labelEl) return;
-
-            const input = labelEl.querySelector('input');
-            if (input) {
-                const newName = input.value.trim();
-                if (newName) {
-                    container.customName = newName;
-                    showNotification(`✅ Container: "${newName}"`, 'success');
-                }
-            }
-
-            editingContainerId = null;
-            renderContainers();
-        }
-
-        function cancelEditContainerLabel(containerId) {
-            editingContainerId = null;
-            renderContainers();
-        }
-
-        function deleteContainer(containerId) {
-            containers = containers.filter(c => c.id !== containerId);
-            devices = devices.filter(d => d.id !== containerId);
-            renderContainers();
-            render();
-            showNotification('🗑️ Container dihapus!', 'info');
-        }
-
-        function renderContainers() {
-            const devicesLayer = document.getElementById('devicesLayer');
-            
-            // Render containers first (as background)
-            const containersHTML = containers.map(container => `
-                <div class="container-box" 
-                     data-container-id="${container.id}"
-                     style="left: ${container.x}px; top: ${container.y}px; width: ${container.width}px; height: ${container.height}px; border-color: ${container.color};">
-                    <div class="container-label" data-container-id="${container.id}">
-                        ${container.customName || container.name}
-                    </div>
-                    <div class="container-delete-btn" data-container-id="${container.id}">✕</div>
-                    <div class="resize-handle top-left" data-container-id="${container.id}" data-handle="top-left"></div>
-                    <div class="resize-handle top-right" data-container-id="${container.id}" data-handle="top-right"></div>
-                    <div class="resize-handle bottom-left" data-container-id="${container.id}" data-handle="bottom-left"></div>
-                    <div class="resize-handle bottom-right" data-container-id="${container.id}" data-handle="bottom-right"></div>
-                </div>
-            `).join('');
-
-            // Get existing devices HTML
-            const devicesHTML = devices.filter(d => !d.isContainer).map(device => `
-                <div class="device-on-canvas ${connectingFrom === device.id ? 'connecting' : ''}" 
-                     style="left: ${device.x - 27.5}px; top: ${device.y - 27.5}px;"
-                     data-device-id="${device.id}">
-                    <div class="device-box" style="background: ${device.color}30; border-color: ${device.color}; box-shadow: ${connectingFrom === device.id ? `0 0 20px ${device.color}` : `0 5px 15px ${device.color}60`};">
-                        ${device.icon}
-                        <div class="delete-btn" data-device-id="${device.id}">✕</div>
-                    </div>
-                    <div class="device-label" data-device-id="${device.id}">${device.customName || device.name}</div>
-                </div>
-            `).join('');
-
-            devicesLayer.innerHTML = containersHTML + devicesHTML;
-
-            // Add container event listeners
-            document.querySelectorAll('.container-box').forEach(el => {
-                const containerId = parseInt(el.dataset.containerId);
-                
-                // Drag container
-                el.addEventListener('mousedown', (e) => {
-                    if (!e.target.closest('.resize-handle') && !e.target.closest('.container-delete-btn') && !e.target.closest('.container-label')) {
-                        touchMoved = false;
-                        draggingDevice = containerId;
-                        el.classList.add('dragging');
-                    }
-                });
-
-                el.addEventListener('touchstart', (e) => {
-                    if (!e.target.closest('.resize-handle') && !e.target.closest('.container-delete-btn') && !e.target.closest('.container-label')) {
-                        touchMoved = false;
-                        draggingDevice = containerId;
-                        el.classList.add('dragging');
-                    }
-                }, { passive: true });
-
-                // Edit label
-                const label = el.querySelector('.container-label');
-                if (label) {
-                    let containerTapCount = 0;
-                    let containerTapTimer = null;
-                    
-                    const handleTripleClick = (e) => {
-                        e.stopPropagation();
-                        
-                        containerTapCount++;
-                        
-                        if (containerTapCount === 1) {
-                            containerTapTimer = setTimeout(() => {
-                                containerTapCount = 0;
-                            }, 500);
-                        }
-                        
-                        if (containerTapCount === 3) {
-                            clearTimeout(containerTapTimer);
-                            containerTapCount = 0;
-                            e.preventDefault();
-                            startEditContainerLabel(containerId);
-                            showNotification('✏️ Edit Nama Container', 'info');
-                        }
-                    };
-
-                    label.addEventListener('click', handleTripleClick);
-                    label.addEventListener('touchend', handleTripleClick);
-                }
-
-                <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-@@ -428,6 +707,118 @@
-font-family: inherit;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulasi Jaringan Komputer - SMK</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #1a1a2e 100%);
+            color: white;
+            overflow: hidden;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 6px;
+            gap: 6px;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 10px;
+            padding: 8px 12px;
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-left h1 {
+            font-size: 1rem;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-left p {
+            color: #9ca3af;
+            font-size: 0.65rem;
+            margin-top: 1px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .score {
+            background: linear-gradient(to right, #f59e0b, #ea580c);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+            white-space: nowrap;
+        }
+
+        .btn-reset {
+            background: #ef4444;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.75rem;
+        }
+
+        .btn-reset:active {
+            background: #dc2626;
+            transform: scale(0.95);
+        }
+
+        .main-content {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .sidebar {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 10px;
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            flex-shrink: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.open {
+            width: 200px;
+        }
+
+        .sidebar.closed {
+            width: 45px;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: 6px;
+            top: 6px;
+            background: rgba(147, 51, 234, 0.4);
+            border: 1px solid rgba(147, 51, 234, 0.6);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .sidebar-toggle:active {
+            background: rgba(147, 51, 234, 0.6);
+            transform: scale(0.95);
+        }
+
+        .sidebar-content {
+            padding: 10px;
+            overflow-y: auto;
+            flex: 1;
+            opacity: 1;
+            transition: opacity 0.3s;
+        }
+
+        .sidebar.closed .sidebar-content {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-closed-icons {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 50px 8px 10px;
+        }
+
+        .sidebar.closed .sidebar-closed-icons {
+            display: flex;
+        }
+
+        .sidebar-icon {
+            font-size: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .sidebar h2 {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .device-item {
+            background: linear-gradient(to right, #374151, #1f2937);
+            padding: 8px;
+            border-radius: 8px;
+            cursor: move;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            touch-action: none;
+        }
+
+        .device-item:active {
+            transform: scale(0.95);
+            border-color: #a78bfa;
+        }
+
+        .device-icon {
+            font-size: 1.8rem;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .device-name {
+            font-weight: bold;
+            font-size: 0.65rem;
+            text-align: center;
+        }
+
+        .cables-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .cable-item {
+            padding: 6px 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #1f2937;
+            touch-action: none;
+        }
+
+        .cable-item.active {
+            background: linear-gradient(to right, #7c3aed, #2563eb);
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        .cable-item:active {
+            transform: scale(0.95);
+        }
+
+        .cable-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+        }
+
+        .cable-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .cable-name {
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+
+        .cable-desc {
+            font-size: 0.6rem;
+            color: #9ca3af;
+            margin-left: 16px;
+        }
+
+        .help-toggle {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            text-align: center;
+            margin-top: 6px;
+        }
+
+        .help-toggle:active {
+            background: rgba(59, 130, 246, 0.3);
+        }
+
+        .help-content {
+            display: none;
+            margin-top: 6px;
+            padding: 8px;
+            background: linear-gradient(to right, rgba(37, 99, 235, 0.2), rgba(124, 58, 237, 0.2));
+            border-radius: 8px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .help-content.show {
+            display: block;
+        }
+
+        .help-content h3 {
+            margin-bottom: 5px;
+            font-size: 0.7rem;
+        }
+
+        .help-content ol {
+            padding-left: 14px;
+            font-size: 0.6rem;
+            color: #d1d5db;
+        }
+
+        .help-content li {
+            margin-bottom: 2px;
+        }
+
+        .canvas-area {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        .canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border: 2px dashed rgba(147, 51, 234, 0.5);
+            position: relative;
+            overflow: hidden;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .device-on-canvas {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+            will-change: transform;
+        }
+
+        .device-on-canvas.connecting {
+            animation: pulse 1s infinite;
+        }
+
+        .device-on-canvas.dragging {
+            opacity: 0.9;
+            z-index: 1000;
+            cursor: grabbing;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .device-box {
+            width: 55px;
+            height: 55px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid;
+            font-size: 1.8rem;
+            position: relative;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 2px solid white;
+            z-index: 10;
+        }
+
+        .delete-btn:active {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        .device-label {
+            text-align: center;
+            font-size: 0.6rem;
+            margin-top: 3px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 40px;
+            user-select: none;
+        }
+
+        .device-label:hover {
+            background: rgba(147, 51, 234, 0.6);
+        }
+
+        .device-label.editing {
+            background: rgba(147, 51, 234, 0.8);
+            padding: 0;
+        }
+
+        .device-label-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 2px 5px;
+            outline: none;
+            font-family: inherit;
+        }
 
         /* Container Styles */
         .container-box {
@@ -398,23 +540,372 @@ font-family: inherit;
             transform: scale(1.1);
         }
 
-.empty-state {
-position: absolute;
-top: 50%;
-@@ -770,7 +1161,8 @@ <h3>Cara Bermain:</h3>
-{ id: 'router', name: 'Router', icon: '📡', color: '#f59e0b' },
-{ id: 'switch', name: 'Switch', icon: '🔀', color: '#10b981' },
-{ id: 'ap', name: 'AP', icon: '📶', color: '#ec4899' },
-            { id: 'printer', name: 'Printer', icon: '🖨️', color: '#6366f1' }
+        .empty-state {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #6b7280;
+            pointer-events: none;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.3;
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.90);
+            backdrop-filter: blur(20px);
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            max-height: 85vh;
+            overflow-y: auto;
+            min-width: 140px;
+            max-width: 200px;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .info-panel.minimized {
+            transform: translateX(calc(100% - 38px));
+        }
+
+        .info-toggle-btn {
+            position: absolute;
+            left: -30px;
+            top: 8px;
+            width: 30px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.90);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .info-toggle-btn:active {
+            background: rgba(147, 51, 234, 0.5);
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+        }
+
+        .info-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .info-dot.green {
+            background: #10b981;
+            animation: blink 1s infinite;
+        }
+
+        .info-dot.red {
+            background: #ef4444;
+        }
+
+        .cable-list {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(147, 51, 234, 0.3);
+        }
+
+        .cable-list-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+            color: #a78bfa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .clear-all-cables {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .clear-all-cables:active {
+            background: #dc2626;
+        }
+
+        .cable-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5px;
+            margin-bottom: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            font-size: 0.65rem;
+            transition: all 0.2s;
+            gap: 4px;
+        }
+
+        .cable-list-item span {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cable-delete-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: bold;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .cable-delete-btn:active {
+            background: #dc2626;
+            transform: scale(0.95);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .devices-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .notification {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideDown 0.3s ease-out;
+            display: none;
+            font-size: 0.75rem;
+            max-width: 80%;
+            text-align: center;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.success {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .notification.error {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .notification.info {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(147, 51, 234, 0.5);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(147, 51, 234, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>🌐 Simulasi Jaringan Komputer</h1>
+                <p>SMK - Media Pembelajaran Interaktif</p>
+            </div>
+            <div class="header-right">
+                <div class="score">🏆 <span id="scoreValue">0</span></div>
+                <button class="btn-reset" onclick="resetAll()">🗑️ Reset</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar open" id="sidebar">
+                <div class="sidebar-toggle" onclick="toggleSidebar()">
+                    <span id="sidebarIcon">◀</span>
+                </div>
+                
+                <div class="sidebar-content">
+                    <h2>🔧 Komponen</h2>
+                    <div class="components-grid" id="deviceList"></div>
+
+                    <h2 style="margin-top: 8px;">🔌 Kabel</h2>
+                    <div class="cables-container" id="cableList"></div>
+
+                    <div class="help-toggle" onclick="toggleHelp()">
+                        💡 <span id="helpToggleText">Bantuan</span>
+                    </div>
+                    <div class="help-content" id="helpContent">
+                        <h3>Cara Bermain:</h3>
+                        <ol>
+                            <li>Tap & drag komponen ke canvas</li>
+                            <li>Geser komponen di canvas</li>
+                            <li>Tap ❌ untuk hapus device</li>
+                            <li>Pilih kabel, tap 2 device untuk koneksi</li>
+                            <li>Hapus kabel di panel kanan atas</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="sidebar-closed-icons">
+                    <div class="sidebar-icon">🔧</div>
+                    <div class="sidebar-icon">💻</div>
+                    <div class="sidebar-icon">🔌</div>
+                    <div class="sidebar-icon">📶</div>
+                </div>
+            </div>
+
+            <div class="canvas-area">
+                <div class="canvas" id="canvas">
+                    <svg id="connectionsSVG"></svg>
+                    <div class="devices-layer" id="devicesLayer"></div>
+                    <div class="empty-state" id="emptyState">
+                        <div class="empty-state-icon">💻</div>
+                        <p style="font-size: 1rem; font-weight: bold;">Buka panel & drag komponen ke sini!</p>
+                        <p style="font-size: 0.75rem; margin-top: 8px;">Buat topologi jaringan kamu</p>
+                    </div>
+                </div>
+
+                <div class="info-panel" id="infoPanel">
+                    <div class="info-toggle-btn" onclick="toggleInfoPanel()">
+                        <span id="infoPanelIcon">◀</span>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-dot green"></div>
+                        <span>Benar: <strong id="correctCount">0</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-dot red"></div>
+                        <span>Salah: <strong id="wrongCount">0</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <div style="width: 8px; text-align: center;">💻</div>
+                        <span>Device: <strong id="deviceCount">0</strong></span>
+                    </div>
+
+                    <div class="cable-list" id="cableListPanel">
+                        <div class="cable-list-title">
+                            <span>📋 Kabel (<span id="cableCount">0</span>):</span>
+                            <button class="clear-all-cables" onclick="clearAllCables()">Hapus Semua</button>
+                        </div>
+                        <div id="cableListContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        const deviceTypes = [
+            { id: 'pc', name: 'PC', icon: '💻', color: '#60a5fa' },
+            { id: 'server', name: 'Server', icon: '🖥️', color: '#a78bfa' },
+            { id: 'router', name: 'Router', icon: '📡', color: '#f59e0b' },
+            { id: 'switch', name: 'Switch', icon: '🔀', color: '#10b981' },
+            { id: 'ap', name: 'AP', icon: '📶', color: '#ec4899' },
             { id: 'printer', name: 'Printer', icon: '🖨️', color: '#6366f1' },
             { id: 'container', name: 'Container', icon: '🏢', color: '#8b5cf6', isContainer: true }
-];
+        ];
 
-const cableTypes = [
-@@ -793,6 +1185,16 @@ <h3>Cara Bermain:</h3>
-let editingDeviceId = null;
-let tapCount = 0;
-let tapTimer = null;
+        const cableTypes = [
+            { id: 'straight', name: 'Straight', color: '#3b82f6', desc: 'PC-Switch/Router' },
+            { id: 'crossover', name: 'Crossover', color: '#ef4444', desc: 'PC-PC, Router-Router' },
+            { id: 'fiber', name: 'Fiber', color: '#f59e0b', desc: 'Jarak jauh' }
+        ];
+
+        let devices = [];
+        let connections = [];
+        let selectedCable = 'straight';
+        let connectingFrom = null;
+        let score = 0;
+        let draggedDeviceType = null;
+        let draggingDevice = null;
+        let touchMoved = false;
+        let animationFrameId = null;
+        let infoPanelMinimized = false;
+        let sidebarOpen = true;
+        let editingDeviceId = null;
+        let tapCount = 0;
+        let tapTimer = null;
         let containers = [];
         let resizingContainer = null;
         let resizeHandle = null;
@@ -426,19 +917,148 @@ let tapTimer = null;
         let resizeStartTop = 0;
         let editingContainerId = null;
 
-function toggleSidebar() {
-const sidebar = document.getElementById('sidebar');
-@@ -936,19 +1338,59 @@ <h3>Cara Bermain:</h3>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('sidebarIcon');
+            sidebarOpen = !sidebarOpen;
+            
+            if (sidebarOpen) {
+                sidebar.classList.remove('closed');
+                sidebar.classList.add('open');
+                icon.textContent = '◀';
+            } else {
+                sidebar.classList.remove('open');
+                sidebar.classList.add('closed');
+                icon.textContent = '▶';
+            }
+        }
 
-const device = devices.find(d => d.id === draggingDevice);
-if (device) {
-                device.x = x;
-                device.y = y;
-                
-                const deviceEl = document.querySelector(`[data-device-id="${draggingDevice}"]`);
-                if (deviceEl) {
-                    deviceEl.style.left = `${x - 27.5}px`;
-                    deviceEl.style.top = `${y - 27.5}px`;
+        function toggleInfoPanel() {
+            const panel = document.getElementById('infoPanel');
+            const icon = document.getElementById('infoPanelIcon');
+            infoPanelMinimized = !infoPanelMinimized;
+            
+            if (infoPanelMinimized) {
+                panel.classList.add('minimized');
+                icon.textContent = '▶';
+            } else {
+                panel.classList.remove('minimized');
+                icon.textContent = '◀';
+            }
+        }
+
+        function toggleHelp() {
+            const helpContent = document.getElementById('helpContent');
+            const helpToggleText = document.getElementById('helpToggleText');
+            helpContent.classList.toggle('show');
+            helpToggleText.textContent = helpContent.classList.contains('show') ? 
+                'Tutup' : 'Bantuan';
+        }
+
+        function showNotification(message, type = 'info') {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.className = `notification ${type}`;
+            notif.style.display = 'block';
+            
+            setTimeout(() => {
+                notif.style.display = 'none';
+            }, 2000);
+        }
+
+        function startEditLabel(deviceId) {
+            if (editingDeviceId) return;
+            
+            editingDeviceId = deviceId;
+            const device = devices.find(d => d.id === deviceId);
+            if (!device) return;
+
+            const labelEl = document.querySelector(`[data-device-id="${deviceId}"] .device-label`);
+            if (!labelEl) return;
+
+            const currentName = device.customName || device.name;
+            
+            labelEl.classList.add('editing');
+            labelEl.innerHTML = `<input type="text" class="device-label-input" value="${currentName}" maxlength="20">`;
+            
+            const input = labelEl.querySelector('input');
+            input.focus();
+            input.select();
+
+            input.addEventListener('blur', () => finishEditLabel(deviceId));
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    finishEditLabel(deviceId);
+                } else if (e.key === 'Escape') {
+                    cancelEditLabel(deviceId);
+                }
+            });
+
+            // Prevent click propagation
+            input.addEventListener('click', (e) => e.stopPropagation());
+            input.addEventListener('touchstart', (e) => e.stopPropagation());
+        }
+
+        function finishEditLabel(deviceId) {
+            if (!editingDeviceId) return;
+
+            const device = devices.find(d => d.id === deviceId);
+            if (!device) return;
+
+            const labelEl = document.querySelector(`[data-device-id="${deviceId}"] .device-label`);
+            if (!labelEl) return;
+
+            const input = labelEl.querySelector('input');
+            if (input) {
+                const newName = input.value.trim();
+                if (newName && newName !== device.name) {
+                    device.customName = newName;
+                    showNotification(`✅ Nama diubah: "${newName}"`, 'success');
+                }
+            }
+
+            editingDeviceId = null;
+            render();
+        }
+
+        function cancelEditLabel(deviceId) {
+            editingDeviceId = null;
+            render();
+        }
+
+        function init() {
+            renderDeviceList();
+            renderCableList();
+            setupCanvas();
+            setupKeyboard();
+            setupMouseHandlers();
+        }
+
+        function setupKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (connectingFrom) {
+                        connectingFrom = null;
+                        render();
+                        showNotification('❌ Koneksi dibatalkan', 'info');
+                    }
+                    if (editingDeviceId) {
+                        cancelEditLabel(editingDeviceId);
+                    }
+                }
+            });
+        }
+
+        function updateDevicePosition(clientX, clientY) {
+            if (!draggingDevice) return;
+            
+            const canvas = document.getElementById('canvas');
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.max(30, Math.min(rect.width - 30, clientX - rect.left));
+            const y = Math.max(30, Math.min(rect.height - 30, clientY - rect.top));
+            
+            const device = devices.find(d => d.id === draggingDevice);
+            if (device) {
                 // Check if it's a container
                 if (device.isContainer) {
                     const container = containers.find(c => c.id === draggingDevice);
@@ -456,11 +1076,11 @@ if (device) {
                         deviceEl.style.left = `${x - 27.5}px`;
                         deviceEl.style.top = `${y - 27.5}px`;
                     }
-}
-
-updateConnections();
-}
-}
+                }
+                
+                updateConnections();
+            }
+        }
 
         function handleResize(clientX, clientY) {
             if (!resizingContainer || !resizeHandle) return;
@@ -492,13 +1112,30 @@ updateConnections();
             renderContainers();
         }
 
-function updateConnections() {
-const svg = document.getElementById('connectionsSVG');
+        function updateConnections() {
+            const svg = document.getElementById('connectionsSVG');
+            
+            connections.forEach((conn) => {
+                const from = devices.find(d => d.id === conn.from);
+                const to = devices.find(d => d.id === conn.to);
+                if (!from || !to) return;
+                
+                const pathEl = svg.querySelector(`#path-${conn.id}`);
+                if (pathEl) {
+                    pathEl.setAttribute('d', `M ${from.x} ${from.y} L ${to.x} ${to.y}`);
+                }
+            });
+        }
 
-@@ -973,6 +1415,13 @@ <h3>Cara Bermain:</h3>
-animationFrameId = requestAnimationFrame(() => {
-updateDevicePosition(e.clientX, e.clientY);
-});
+        function setupMouseHandlers() {
+            document.addEventListener('mousemove', (e) => {
+                if (draggingDevice) {
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                    }
+                    animationFrameId = requestAnimationFrame(() => {
+                        updateDevicePosition(e.clientX, e.clientY);
+                    });
                 } else if (resizingContainer) {
                     if (animationFrameId) {
                         cancelAnimationFrame(animationFrameId);
@@ -506,13 +1143,19 @@ updateDevicePosition(e.clientX, e.clientY);
                     animationFrameId = requestAnimationFrame(() => {
                         handleResize(e.clientX, e.clientY);
                     });
-}
-});
+                }
+            });
 
-@@ -986,6 +1435,13 @@ <h3>Cara Bermain:</h3>
-document.querySelectorAll('.device-on-canvas').forEach(el => {
-el.classList.remove('dragging');
-});
+            document.addEventListener('mouseup', () => {
+                if (draggingDevice) {
+                    draggingDevice = null;
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                    document.querySelectorAll('.device-on-canvas').forEach(el => {
+                        el.classList.remove('dragging');
+                    });
                     document.querySelectorAll('.container-box').forEach(el => {
                         el.classList.remove('dragging');
                     });
@@ -520,13 +1163,21 @@ el.classList.remove('dragging');
                 if (resizingContainer) {
                     resizingContainer = null;
                     resizeHandle = null;
-}
-});
+                }
+            });
 
-@@ -1001,6 +1457,16 @@ <h3>Cara Bermain:</h3>
-animationFrameId = requestAnimationFrame(() => {
-updateDevicePosition(touch.clientX, touch.clientY);
-});
+            document.addEventListener('touchmove', (e) => {
+                if (draggingDevice) {
+                    e.preventDefault();
+                    touchMoved = true;
+                    const touch = e.touches[0];
+                    
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                    }
+                    animationFrameId = requestAnimationFrame(() => {
+                        updateDevicePosition(touch.clientX, touch.clientY);
+                    });
                 } else if (resizingContainer) {
                     e.preventDefault();
                     const touch = e.touches[0];
@@ -537,13 +1188,19 @@ updateDevicePosition(touch.clientX, touch.clientY);
                     animationFrameId = requestAnimationFrame(() => {
                         handleResize(touch.clientX, touch.clientY);
                     });
-}
-}, { passive: false });
+                }
+            }, { passive: false });
 
-@@ -1014,6 +1480,13 @@ <h3>Cara Bermain:</h3>
-document.querySelectorAll('.device-on-canvas').forEach(el => {
-el.classList.remove('dragging');
-});
+            document.addEventListener('touchend', () => {
+                if (draggingDevice) {
+                    draggingDevice = null;
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                    document.querySelectorAll('.device-on-canvas').forEach(el => {
+                        el.classList.remove('dragging');
+                    });
                     document.querySelectorAll('.container-box').forEach(el => {
                         el.classList.remove('dragging');
                     });
@@ -551,13 +1208,22 @@ el.classList.remove('dragging');
                 if (resizingContainer) {
                     resizingContainer = null;
                     resizeHandle = null;
-}
-setTimeout(() => {
-touchMoved = false;
-@@ -1030,6 +1503,13 @@ <h3>Cara Bermain:</h3>
-document.querySelectorAll('.device-on-canvas').forEach(el => {
-el.classList.remove('dragging');
-});
+                }
+                setTimeout(() => {
+                    touchMoved = false;
+                }, 100);
+            });
+
+            document.addEventListener('touchcancel', () => {
+                if (draggingDevice) {
+                    draggingDevice = null;
+                    if (animationFrameId) {
+                        cancelAnimationFrame(animationFrameId);
+                        animationFrameId = null;
+                    }
+                    document.querySelectorAll('.device-on-canvas').forEach(el => {
+                        el.classList.remove('dragging');
+                    });
                     document.querySelectorAll('.container-box').forEach(el => {
                         el.classList.remove('dragging');
                     });
@@ -565,26 +1231,47 @@ el.classList.remove('dragging');
                 if (resizingContainer) {
                     resizingContainer = null;
                     resizeHandle = null;
-}
-});
-}
-@@ -1071,19 +1551,41 @@ <h3>Cara Bermain:</h3>
-const x = touch.clientX - rect.left;
-const y = touch.clientY - rect.top;
+                }
+            });
+        }
 
-                        const newDevice = {
-                            id: Date.now(),
-                            type: draggedDeviceType.id,
-                            name: draggedDeviceType.name,
-                            icon: draggedDeviceType.icon,
-                            color: draggedDeviceType.color,
-                            x: x,
-                            y: y
-                        };
+        function renderDeviceList() {
+            const list = document.getElementById('deviceList');
+            list.innerHTML = deviceTypes.map(device => `
+                <div class="device-item" data-device='${JSON.stringify(device)}'>
+                    <div class="device-icon" style="background: ${device.color}30; border: 2px solid ${device.color};">
+                        ${device.icon}
+                    </div>
+                    <div class="device-name">${device.name}</div>
+                </div>
+            `).join('');
 
-                        devices.push(newDevice);
-                        render();
-                        showNotification(`✅ ${newDevice.name} ditambahkan!`, 'success');
+            document.querySelectorAll('.device-item').forEach(item => {
+                let touchStartX, touchStartY;
+                item.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    draggedDeviceType = JSON.parse(item.dataset.device);
+                }, { passive: true });
+
+                item.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
+
+                item.addEventListener('touchend', (e) => {
+                    if (!draggedDeviceType) return;
+                    
+                    const touch = e.changedTouches[0];
+                    const canvas = document.getElementById('canvas');
+                    const rect = canvas.getBoundingClientRect();
+                    
+                    if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+                        touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+                        
+                        const x = touch.clientX - rect.left;
+                        const y = touch.clientY - rect.top;
+
                         if (draggedDeviceType.isContainer) {
                             // Create container
                             const newContainer = {
@@ -620,24 +1307,54 @@ const y = touch.clientY - rect.top;
                             render();
                             showNotification(`✅ ${newDevice.name} ditambahkan!`, 'success');
                         }
-}
+                    }
+                    
+                    draggedDeviceType = null;
+                }, { passive: false });
+            });
+        }
 
-draggedDeviceType = null;
-@@ -1132,20 +1634,43 @@ <h3>Cara Bermain:</h3>
-const x = e.clientX - rect.left;
-const y = e.clientY - rect.top;
+        function renderCableList() {
+            const list = document.getElementById('cableList');
+            list.innerHTML = cableTypes.map(cable => `
+                <div class="cable-item ${cable.id === selectedCable ? 'active' : ''}" data-cable="${cable.id}">
+                    <div class="cable-header">
+                        <div class="cable-dot" style="background: ${cable.color};"></div>
+                        <div class="cable-name">${cable.name}</div>
+                    </div>
+                    <div class="cable-desc">${cable.desc}</div>
+                </div>
+            `).join('');
 
-                const newDevice = {
-                    id: Date.now(),
-                    type: draggedDeviceType.id,
-                    name: draggedDeviceType.name,
-                    icon: draggedDeviceType.icon,
-                    color: draggedDeviceType.color,
-                    x: x,
-                    y: y
+            document.querySelectorAll('.cable-item').forEach(item => {
+                const selectCable = () => {
+                    selectedCable = item.dataset.cable;
+                    renderCableList();
+                    const cableName = cableTypes.find(c => c.id === selectedCable).name;
+                    showNotification(`🔌 ${cableName} dipilih`, 'info');
                 };
 
-                devices.push(newDevice);
+                item.addEventListener('click', selectCable);
+                item.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    selectCable();
+                });
+            });
+        }
+
+        function setupCanvas() {
+            const canvas = document.getElementById('canvas');
+            
+            canvas.addEventListener('dragover', (e) => e.preventDefault());
+            
+            canvas.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (!draggedDeviceType) return;
+
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
                 if (draggedDeviceType.isContainer) {
                     // Create container
                     const newContainer = {
@@ -674,25 +1391,304 @@ const y = e.clientY - rect.top;
                     showNotification(`✅ ${newDevice.name} ditambahkan!`, 'success');
                 }
                 
-draggedDeviceType = null;
+                draggedDeviceType = null;
+            });
+        }
+
+        function validateConnection(from, to, cable) {
+            const device1 = devices.find(d => d.id === from);
+            const device2 = devices.find(d => d.id === to);
+            
+            if (!device1 || !device2) return false;
+
+            if (cable === 'straight') {
+                const validPairs = [
+                    ['pc', 'switch'], ['pc', 'router'], ['switch', 'router'],
+                    ['server', 'switch'], ['server', 'router'], ['printer', 'switch']
+                ];
+                return validPairs.some(pair => 
+                    (pair.includes(device1.type) && pair.includes(device2.type)) && 
+                    device1.type !== device2.type
+                );
+            }
+            
+            if (cable === 'crossover') {
+                return (device1.type === 'pc' && device2.type === 'pc') ||
+                       (device1.type === 'router' && device2.type === 'router') ||
+                       (device1.type === 'switch' && device2.type === 'switch');
+            }
+
+            if (cable === 'fiber') {
+                return ['router', 'switch', 'server'].includes(device1.type) && 
+                       ['router', 'switch', 'server'].includes(device2.type);
+            }
+
+            return false;
+        }
+
+        function handleDeviceClick(deviceId, e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            if (touchMoved) {
+                touchMoved = false;
+                return;
+            }
+            
+            if (!connectingFrom) {
+                connectingFrom = deviceId;
                 render();
-                showNotification(`✅ ${newDevice.name} ditambahkan!`, 'success');
-});
-}
+                showNotification('🔌 Pilih device kedua', 'info');
+            } else {
+                if (connectingFrom !== deviceId) {
+                    const isValid = validateConnection(connectingFrom, deviceId, selectedCable);
+                    
+                    connections.push({
+                        id: Date.now(),
+                        from: connectingFrom,
+                        to: deviceId,
+                        cable: selectedCable,
+                        valid: isValid
+                    });
+                    
+                    if (isValid) {
+                        score += 10;
+                        document.getElementById('scoreValue').textContent = score;
+                        showNotification('✅ BENAR! +10', 'success');
+                    } else {
+                        showNotification('❌ SALAH!', 'error');
+                    }
+                }
+                connectingFrom = null;
+                render();
+            }
+        }
 
-@@ -1419,13 +1944,14 @@ <h3>Cara Bermain:</h3>
-}
+        function deleteDevice(deviceId, e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            connections = connections.filter(c => c.from !== deviceId && c.to !== deviceId);
+            
+            const device = devices.find(d => d.id === deviceId);
+            devices = devices.filter(d => d.id !== deviceId);
+            
+            if (connectingFrom === deviceId) {
+                connectingFrom = null;
+            }
+            
+            render();
+            showNotification(`🗑️ ${device.name} dihapus!`, 'info');
+        }
 
-function resetAll() {
+        function deleteConnection(connId, e) {
+            e.stopPropagation();
+            e.preventDefault();
+            connections = connections.filter(c => c.id !== connId);
+            render();
+            showNotification('🗑️ Kabel dihapus!', 'info');
+        }
+
+        function startDragDevice(deviceId, e) {
+            if (e.target.closest('.delete-btn')) return;
+            
+            touchMoved = false;
+            draggingDevice = deviceId;
+            e.target.closest('.device-on-canvas').classList.add('dragging');
+        }
+
+        function render() {
+            const devicesLayer = document.getElementById('devicesLayer');
+            const svg = document.getElementById('connectionsSVG');
+            const emptyState = document.getElementById('emptyState');
+
+            emptyState.style.display = devices.length === 0 ? 'block' : 'none';
+
+            devicesLayer.innerHTML = devices.map(device => `
+                <div class="device-on-canvas ${connectingFrom === device.id ? 'connecting' : ''}" 
+                     style="left: ${device.x - 27.5}px; top: ${device.y - 27.5}px;"
+                     data-device-id="${device.id}">
+                    <div class="device-box" style="background: ${device.color}30; border-color: ${device.color}; box-shadow: ${connectingFrom === device.id ? `0 0 20px ${device.color}` : `0 5px 15px ${device.color}60`};">
+                        ${device.icon}
+                        <div class="delete-btn" data-device-id="${device.id}">✕</div>
+                    </div>
+                    <div class="device-label" data-device-id="${device.id}">${device.customName || device.name}</div>
+                </div>
+            `).join('');
+
+            document.querySelectorAll('.device-on-canvas').forEach(el => {
+                const deviceId = parseInt(el.dataset.deviceId);
+                
+                el.addEventListener('click', (e) => handleDeviceClick(deviceId, e));
+                el.addEventListener('touchend', (e) => {
+                    if (!touchMoved) {
+                        handleDeviceClick(deviceId, e);
+                    }
+                });
+                
+                el.addEventListener('mousedown', (e) => {
+                    if (!e.target.closest('.delete-btn')) {
+                        startDragDevice(deviceId, e);
+                    }
+                });
+
+                el.addEventListener('touchstart', (e) => {
+                    if (!e.target.closest('.delete-btn')) {
+                        touchMoved = false;
+                        startDragDevice(deviceId, e);
+                    }
+                }, { passive: true });
+
+                el.addEventListener('touchmove', (e) => {
+                    if (draggingDevice === deviceId) {
+                        touchMoved = true;
+                    }
+                }, { passive: true });
+                
+                const deleteBtn = el.querySelector('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        deleteDevice(deviceId, e);
+                    });
+                    deleteBtn.addEventListener('touchend', (e) => {
+                        deleteDevice(deviceId, e);
+                    });
+                }
+
+                // Rename label event - Triple tap/click
+                const label = el.querySelector('.device-label');
+                if (label) {
+                    const handleTripleClick = (e, deviceId) => {
+                        e.stopPropagation();
+                        
+                        tapCount++;
+                        
+                        if (tapCount === 1) {
+                            tapTimer = setTimeout(() => {
+                                tapCount = 0;
+                            }, 500); // Reset after 500ms
+                        }
+                        
+                        if (tapCount === 3) {
+                            clearTimeout(tapTimer);
+                            tapCount = 0;
+                            e.preventDefault();
+                            startEditLabel(deviceId);
+                            showNotification('✏️ Mode Edit Nama', 'info');
+                        }
+                    };
+
+                    // Desktop: Triple click
+                    label.addEventListener('click', (e) => {
+                        handleTripleClick(e, deviceId);
+                    });
+
+                    // Mobile: Triple tap
+                    label.addEventListener('touchend', (e) => {
+                        handleTripleClick(e, deviceId);
+                    });
+                }
+            });
+
+            // Update cable count
+            document.getElementById('cableCount').textContent = connections.length;
+
+            if (connections.length === 0) {
+                cableListPanel.style.display = 'none';
+            } else {
+                cableListPanel.style.display = 'block';
+                cableListContent.innerHTML = connections.map((conn) => {
+                    const from = devices.find(d => d.id === conn.from);
+                    const to = devices.find(d => d.id === conn.to);
+                    if (!from || !to) return '';
+
+                    const statusIcon = conn.valid ? '✅' : '❌';
+                    const fromName = from.customName || from.name;
+                    const toName = to.customName || to.name;
+                    
+                    return `
+                        <div class="cable-list-item">
+                            <span>${statusIcon} ${fromName}↔${toName}</span>
+                            <button class="cable-delete-btn" data-conn-id="${conn.id}">🗑️</button>
+                        </div>
+                    `;
+                }).join('');
+
+                setTimeout(() => {
+                    document.querySelectorAll('.cable-delete-btn').forEach(btn => {
+                        const deleteFunc = (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            const connId = parseInt(btn.dataset.connId);
+                            deleteConnection(connId, e);
+                        };
+                        btn.addEventListener('click', deleteFunc);
+                        btn.addEventListener('touchend', deleteFunc);
+                    });
+                }, 0);
+            }
+
+            svg.innerHTML = connections.map(conn => {
+                const from = devices.find(d => d.id === conn.from);
+                const to = devices.find(d => d.id === conn.to);
+                if (!from || !to) return '';
+
+                const pathId = `path-${conn.id}`;
+                const color = conn.valid ? '#10b981' : '#ef4444';
+                const dashArray = conn.cable === 'fiber' ? '8,4' : '0';
+
+                return `
+                    <g class="connection-group" data-conn-id="${conn.id}">
+                        <path id="${pathId}" 
+                              class="connection-path"
+                              d="M ${from.x} ${from.y} L ${to.x} ${to.y}" 
+                              stroke="${color}" 
+                              stroke-width="3" 
+                              stroke-dasharray="${dashArray}" 
+                              opacity="0.8" 
+                              fill="none"
+                              style="transition: all 0.2s;"/>
+                        ${conn.valid ? `
+                            <circle r="3" fill="#10b981" pointer-events="none">
+                                <animateMotion dur="2s" repeatCount="indefinite">
+                                    <mpath href="#${pathId}"/>
+                                </animateMotion>
+                            </circle>
+                        ` : ''}
+                    </g>
+                `;
+            }).join('');
+
+            document.getElementById('correctCount').textContent = connections.filter(c => c.valid).length;
+            document.getElementById('wrongCount').textContent = connections.filter(c => !c.valid).length;
+            document.getElementById('deviceCount').textContent = devices.length;
+        }
+
+        function resetAll() {
             if (devices.length === 0 && connections.length === 0) {
-            if (devices.length === 0 && connections.length === 0 && containers.length === 0) {
-showNotification('Canvas sudah kosong!', 'info');
-return;
-}
+                showNotification('Canvas sudah kosong!', 'info');
+                return;
+            }
+            
+            devices = [];
+            connections = [];
+            connectingFrom = null;
+            score = 0;
+            document.getElementById('scoreValue').textContent = '0';
+            render();
+            showNotification('🗑️ Semua dihapus!', 'success');
+        }
 
-devices = [];
-connections = [];
-            containers = [];
-connectingFrom = null;
-score = 0;
-document.getElementById('scoreValue').textContent = '0';
+        function clearAllCables() {
+            if (connections.length === 0) return;
+            
+            connections = [];
+            connectingFrom = null;
+            render();
+            showNotification('🗑️ Semua kabel dihapus!', 'success');
+        }
+
+        init();
+    </script>
+</body>
+</html>
