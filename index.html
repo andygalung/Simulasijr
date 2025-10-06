@@ -18,7 +18,7 @@
             color: white;
             overflow: hidden;
             height: 100vh;
-            touch-action: none;
+            touch-action: auto;
         }
 
         .container {
@@ -147,6 +147,7 @@
             flex: 1;
             opacity: 1;
             transition: opacity 0.3s;
+            touch-action: pan-y;
         }
 
         .sidebar.closed .sidebar-content {
@@ -197,7 +198,7 @@
             flex-direction: column;
             align-items: center;
             gap: 3px;
-            touch-action: none;
+            touch-action: pan-y;
         }
 
         .device-item:active {
@@ -234,7 +235,7 @@
             cursor: pointer;
             transition: all 0.3s;
             background: #1f2937;
-            touch-action: none;
+            touch-action: pan-y;
         }
 
         .cable-item.active {
@@ -1357,7 +1358,14 @@
                 }, { passive: true });
 
                 item.addEventListener('touchmove', (e) => {
-                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const dx = Math.abs(touch.clientX - touchStartX);
+                    const dy = Math.abs(touch.clientY - touchStartY);
+                    const sbRect = document.getElementById('sidebar').getBoundingClientRect();
+                    const outsideSidebar = touch.clientX < sbRect.left || touch.clientX > sbRect.right || touch.clientY < sbRect.top || touch.clientY > sbRect.bottom;
+                    if (outsideSidebar || dx > dy * 1.2) {
+                        e.preventDefault();
+                    }
                 }, { passive: false });
 
                 item.addEventListener('touchend', (e) => {
