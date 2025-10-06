@@ -441,6 +441,7 @@
             min-width: 100px;
             min-height: 80px;
             z-index: 1;
+            will-change: left, top, width, height;
         }
 
         .rectangle-box.dragging {
@@ -800,7 +801,7 @@
     <div class="container">
         <div class="header">
             <div class="header-left">
-                <h1>🌐 Simulasi Jaringan Komputer</h1>
+                <h1>🌐 Simulasia Jaringan Komputer</h1>
                 <p>SMK - Media Pembelajaran Interaktif</p>
             </div>
             <div class="header-right">
@@ -1161,7 +1162,11 @@
             rectangle.x = Math.max(0, Math.min(rect.width - rectangle.width, x));
             rectangle.y = Math.max(0, Math.min(rect.height - rectangle.height, y));
             
-            renderRectangles();
+            const el = document.querySelector(`[data-rect-id="${draggingRectangle}"]`);
+            if (el) {
+                el.style.left = `${rectangle.x}px`;
+                el.style.top = `${rectangle.y}px`;
+            }
         }
 
         function handleResize(clientX, clientY) {
@@ -1191,7 +1196,13 @@
                 rectangle.height = Math.max(80, resizeStartHeight + deltaY);
             }
 
-            renderRectangles();
+            const el = document.querySelector(`[data-rect-id="${resizingRectangle}"]`);
+            if (el) {
+                el.style.left = `${rectangle.x}px`;
+                el.style.top = `${rectangle.y}px`;
+                el.style.width = `${rectangle.width}px`;
+                el.style.height = `${rectangle.height}px`;
+            }
         }
 
         function updateConnections() {
@@ -1851,4 +1862,3 @@
     </script>
 </body>
 </html>
-
